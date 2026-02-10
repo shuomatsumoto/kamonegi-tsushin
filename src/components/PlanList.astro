@@ -3,6 +3,7 @@ type Plan = {
   date: string;
   title: string;
   category: "しんぶん" | "自然と科学" | "文化と芸術" | "せいかつ" | "研究室" | "雑記";
+  status?: string;
 };
 
 const categoryIcon: Record<Plan["category"], string> = {
@@ -14,32 +15,42 @@ const categoryIcon: Record<Plan["category"], string> = {
   雑記: "✍️",
 };
 
-const { plans, title = "執筆予定", limit = 6 } = Astro.props as {
+const { plans, limit, title = "執筆予定" } = Astro.props as {
   plans: Plan[];
-  title?: string;
   limit?: number;
+  title?: string;
 };
-
-const upcoming = [...plans]
-  .sort((a, b) => (a.date > b.date ? 1 : -1))
-  .slice(0, limit);
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
----
-<section>
-  <h2 class="h2">{title}</h2>
+const shown = typeof limit === "number" ? plans.slice(0, limit) : plans;
 
-  <ul class="planLines">
-    {upcoming.map((p) => (
+function planTitle(t: string) {
+  const s = t.trim();
+  return s.startsWith("（予定）") || s.startsWith("(予定)") ? s : `（予定）${s}`;
+}
+---
+<section class="plainSection">
+  <div class="sectionHead">
+    <h2 class="h2" style="margin:0;">{title}</h2>
+  </div>
+
+  <ul class="postList">
+    {shown.map((p) => (
       <li>
-        <a href={`${BASE}date/${p.date}`}>
-          {categoryIcon[p.category]}
-          <span class="sep">／</span>
-          <span class="label">（予定）</span>
-          {p.title}
+        <a class="postRow" href={`${BASE}date/${p.date}`}>
+          <span class="left">
+            <span class="icon" aria-hidden="true">{categoryIcon[p.category]}</span>
+            <span class="category">{p.category}</span>
+            <span class="sep">｜</span>
+            <strong class="title">{planTitle(p.title)}</strong>
+          </span>
+
+          <span class="right">
+            <span class="date">{p.date}</span>
+          </span>
         </a>
       </li>
     ))}
@@ -47,37 +58,36 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 </section>
 
 <style>
-  .planLines {
-    list-style: none;
-    padding: 0;
-    margin: 8px 0 0;
-  }
+  .plainSection { padding: 0; margin: 0; }
+  .sectionHead { margin: 0 0 8px; }
+  .postList { list-style: none; padding: 0; margin: 0; }
 
-  .planLines li {
-    padding: 6px 0;
+  .postRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
     border-bottom: 1px dotted var(--line);
-  }
-
-  .planLines li:last-child {
-    border-bottom: none;
-  }
-
-  .planLines a {
-    color: var(--ink);
     text-decoration: none;
+    color: var(--ink);
   }
 
-  .planLines a:hover {
-    text-decoration: underline;
-  }
+  .left { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
 
-  .sep {
-    margin: 0 4px;
+  .right {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 0.85em;
     color: var(--muted);
+    white-space: nowrap;
   }
 
-  .label {
-    color: var(--muted);
-    margin-right: 2px;
+  .category { font-size: 0.85em; color: var(--muted); }
+  .sep { color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .postRow { flex-direction: column; gap: 4px; }
+    .right { white-space: normal; }
   }
 </style>
