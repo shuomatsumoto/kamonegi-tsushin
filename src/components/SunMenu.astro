@@ -1,14 +1,19 @@
 ---
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
 const items = [
-  { href: "/", label: "ホーム", icon: "☀️" },
-  { href: "/shimbun", label: "しんぶん", icon: "📰" },
-  { href: "/science", label: "自然と科学", icon: "🪴" },
-  { href: "/culture", label: "文化と芸術", icon: "🎨" },
-  { href: "/life", label: "せいかつ", icon: "🍲" },
-  { href: "/lab", label: "研究室", icon: "📎" },
-  { href: "/zatsuki", label: "雑記", icon: "✍️" },
+  { href: `${BASE}`, label: "ホーム", icon: "☀️" },
+  { href: `${BASE}shimbun`, label: "しんぶん", icon: "📰" },
+  { href: `${BASE}science`, label: "自然と科学", icon: "🪴" },
+  { href: `${BASE}culture`, label: "文化と芸術", icon: "🎨" },
+  { href: `${BASE}life`, label: "せいかつ", icon: "🍲" },
+  { href: `${BASE}lab`, label: "研究室", icon: "📎" },
+  { href: `${BASE}zatsuki`, label: "雑記", icon: "✍️" },
 ];
 ---
+
 <button id="sunFab" class="sunFab" type="button" aria-label="menu" aria-expanded="false">
   ☀️
 </button>

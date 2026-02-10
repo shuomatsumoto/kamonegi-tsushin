@@ -19,7 +19,6 @@ type CardItem =
       category: Plan["category"];
       href: string;
       tags: string[];
-      // 「アップロード順」代替として、同日内は slug で安定ソート（後述）
       sortKey: string;
     }
   | {
@@ -31,6 +30,10 @@ type CardItem =
       href: string;
       sortKey: string;
     };
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
 
 export async function getStaticPaths() {
   const allPlans = (plans as Plan[]) ?? [];
@@ -48,15 +51,13 @@ const { ymd } = Astro.params as { ymd: string };
 // その日の記事
 const postsAll = await getCollection("posts", ({ data }) => !data.draft && data.date === ymd);
 
-// ここが「並び順」：同日内で安定して並ぶよう slug ベースにしてあります。
-// もし “新しい順” にしたいなら sort を逆にするだけでOKです。
 const postItems: CardItem[] = postsAll
   .map((p) => ({
     kind: "post",
     date: p.data.date,
     title: p.data.title,
     category: p.data.category,
-    href: `/posts/${p.slug}`,
+    href: `${BASE}posts/${p.slug}`,   // ✅ base対応
     tags: p.data.tags ?? [],
     sortKey: `P-${p.slug}`,
   }))
@@ -72,16 +73,13 @@ const planItems: CardItem[] = allPlans
     title: p.title,
     category: p.category,
     status: p.status,
-    href: `/date/${p.date}`,
-    // plans.json 内の並び順を保持したいので idx を入れる
+    href: `${BASE}date/${p.date}`,    // ✅ base対応
     sortKey: `Q-${String(idx).padStart(4, "0")}`,
   }));
 
-// 合体（記事→予定の順。混ぜたいなら sortKey に日付や種別を工夫できます）
 const items: CardItem[] = [...postItems, ...planItems];
 ---
 <BaseLayout title={`${ymd} | かもねぎ通信`}>
-  <!-- 日付はカードにしない：自然な見出し -->
   <div style="display:flex; align-items:baseline; justify-content:space-between; gap:12px;">
     <h2 class="h2" style="margin:0;">{ymd}</h2>
     <div class="small">● 記事 / ○ 予定</div>
