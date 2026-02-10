@@ -12,32 +12,21 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 <BaseLayout title="かもねぎ通信">
   <div class="grid">
     <div class="list" style="gap:18px;">
-      <Calendar posts={posts} plans={plans} />
       <ArticleList posts={posts} limit={10} title="最新の記事" />
+      <Calendar posts={posts} plans={plans} />
     </div>
 
-    <div class="list" style="gap:18px;">
-      <!-- ここを追加 -->
+      <div class="list" style="gap:18px;">
       <PlanList plans={plans} />
-      <!-- ここまで -->
+      
+      🔗SNSアカウント
+      <div class="snsRow">
+      <a class="item" href="https://x.com/neo_neco_">X</a>
+      <a class="item" href="https://note.com/neoneco">Note</a>
+      <a class="item" href="https://bookmeter.com/users/1179346">読メ</a>
+      <a class="item" href="https://www.youtube.com/@shuomatsumoto">YouTube</a>
+      </div>
 
-      <section class="card">
-        <h2 class="h2">今週の言葉</h2>
-        <div class="hr"></div>
-        <p style="margin:0;">
-          見えずとも、誰恋ひざらめ。山の端にいさよふ月を、よそに見てしが
-        </p>
-        <div class="small" style="margin-top:8px;">— 『万葉集』第三巻、392番。</div>
-      </section>
-
-      <section class="card">
-        <h2 class="h2">SNS</h2>
-        <div class="list">
-          <a class="item" href="https://x.com/neo_neco_" style="text-decoration:none;">X</a>
-          <a class="item" href="https://note.com/neoneco" style="text-decoration:none;">Note</a>
-          <a class="item" href="https://bookmeter.com/users/1179346" style="text-decoration:none;">読書メーター</a>
-        </div>
-      </section>
     </div>
   </div>
 </BaseLayout>

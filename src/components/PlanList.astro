@@ -23,6 +23,11 @@ const { plans, title = "執筆予定", limit = 6 } = Astro.props as {
 const upcoming = [...plans]
   .sort((a, b) => (a.date > b.date ? 1 : -1))
   .slice(0, limit);
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
 ---
 <section>
   <h2 class="h2">{title}</h2>
@@ -30,7 +35,7 @@ const upcoming = [...plans]
   <ul class="planLines">
     {upcoming.map((p) => (
       <li>
-        <a href={`/date/${p.date}`}>
+        <a href={`${BASE}date/${p.date}`}>
           {categoryIcon[p.category]}
           <span class="sep">／</span>
           <span class="label">（予定）</span>

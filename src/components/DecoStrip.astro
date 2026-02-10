@@ -1,5 +1,7 @@
 ---
-const B = import.meta.env.BASE_URL;
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
 
 const imgs = [
   "sun1.jpg",
@@ -12,7 +14,7 @@ const imgs = [
 ---
 <div class="decoStrip" aria-hidden="true">
   {imgs.map((f) => (
-    <img src={`${B}images/deco/${f}`} class="decoStamp" alt="" loading="lazy" />
+    <img src={`${BASE}images/deco/${f}`} class="decoStamp" alt="" loading="lazy" />
   ))}
 </div>
 

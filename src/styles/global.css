@@ -325,3 +325,23 @@ a:hover { opacity: 0.85; }
   box-shadow: none;
   border-radius: 4px;
 }
+
+.snsRow {
+  display: flex;
+  gap: 12px;              /* 横の間隔 */
+  flex-wrap: wrap;        /* 画面が狭ければ折り返す */
+  margin-top: 6px;
+}
+
+.snsRow .item {
+  padding: 6px 10px;
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;   /* やわらかいピル型 */
+  font-size: 0.9em;
+}
+
+.snsRow .item:hover {
+  background: rgba(0,0,0,0.03);
+}
