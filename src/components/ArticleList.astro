@@ -9,31 +9,128 @@ const { posts, limit, title = "記事" } = Astro.props as {
 };
 
 const shown = typeof limit === "number" ? posts.slice(0, limit) : posts;
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
+// 「新しい記事一覧」への導線（後で検索/絞り込みをここに実装）
+const allPostsHref = `${BASE}posts/all`;
 ---
-<section class="card">
-  <h2 class="h2">{title}</h2>
-  <div class="list">
+<section class="plainSection">
+  <div class="sectionHead">
+    <h2 class="h2" style="margin:0;">{title}</h2>
+
+    <a class="moreLink" href={allPostsHref}>
+      全件を見る →
+    </a>
+  </div>
+
+  <ul class="postList">
     {shown.map((p) => {
       const meta = categoryMeta[p.data.category];
       return (
-        <a href={`/posts/${p.slug}`} style="text-decoration:none;">
-          <div class="item">
-            <div class="titleline">
-              <div style="display:flex; gap:10px; align-items:baseline;">
-                <span class="badge" title={p.data.category}>
-                  <span aria-hidden="true">{meta.icon}</span>
-                  <span>{p.data.category}</span>
-                </span>
-                <strong>{p.data.title}</strong>
-              </div>
-              <span class="small mono">{toYMD(p.data.date)}</span>
-            </div>
-            <div class="small">
-              {p.data.tags?.length ? `#${p.data.tags.join(" #")}` : ""}
-            </div>
-          </div>
-        </a>
+        <li>
+          <a class="postRow" href={`${BASE}posts/${p.slug}`}>
+            <span class="left">
+              <span class="icon" aria-hidden="true">{meta.icon}</span>
+              <span class="category">{p.data.category}</span>
+              <span class="sep">｜</span>
+              <strong class="title">{p.data.title}</strong>
+            </span>
+
+            <span class="right">
+              <span class="date">{toYMD(p.data.date)}</span>
+              {p.data.tags?.length && (
+                <span class="tags">#{p.data.tags.join(" #")}</span>
+              )}
+            </span>
+          </a>
+        </li>
       );
     })}
-  </div>
+  </ul>
 </section>
+
+<style>
+  .plainSection {
+    padding: 0;
+    margin: 0;
+  }
+
+  .sectionHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 8px;
+  }
+
+  .moreLink {
+    font-size: 0.9em;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .moreLink:hover {
+    text-decoration: underline;
+  }
+
+  .postList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .postRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--line);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .left {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .right {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 0.85em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .category {
+    font-size: 0.85em;
+    color: var(--muted);
+  }
+
+  .sep {
+    color: var(--muted);
+  }
+
+  .tags {
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .sectionHead {
+      flex-wrap: wrap;
+    }
+    .postRow {
+      flex-direction: column;
+      gap: 4px;
+    }
+    .right {
+      white-space: normal;
+    }
+  }
+</style>
