@@ -1,5 +1,6 @@
 :root {
   --bg: #ffffff;                 /* 背景は完全な白 */
+  --card: rgba(255,255,255,0.55);   /* カード背景（白ベースの薄い紙感） */
   --ink: #2e2a25;
   --muted: #7a746c;
   --line: rgba(90, 80, 60, 0.18);
@@ -17,7 +18,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 10%; }
+html, body { height: 100%; }
 body {
   margin: 0;
   background: var(--bg);
@@ -32,7 +33,7 @@ body {
 }
 
 a { color: inherit; }
-a:hover { opacity: 0.85; }
+a:hover { opacity: 0.92; }
 
 .container {
   max-width: var(--max);
@@ -251,7 +252,8 @@ a:hover { opacity: 0.85; }
   position: fixed;
   border-radius: 14px;     /* JPGの角を少し丸めて紙感 */
   opacity: 0.92;           /* うるささ軽減 */
-  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.12));
+  filter: none;            /* 浮きすぎを防ぐ */
+  box-shadow: none;        /* 影を切る */
 }
 
 /* サイズ */
@@ -317,7 +319,7 @@ a:hover { opacity: 0.85; }
   bottom: 4px;
   right: 4px;
   width: 20px;
-  height: 2-px;
+  height: 20px;
   object-fit: cover;
   opacity: 1.0;
 

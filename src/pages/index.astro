@@ -10,23 +10,78 @@ const postsAll = await getCollection("posts", ({ data }) => !data.draft);
 const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 ---
 <BaseLayout title="かもねぎ通信">
-  <div class="grid">
-    <div class="list" style="gap:18px;">
-      <ArticleList posts={posts} limit={10} title="最新の記事" />
-      <Calendar posts={posts} plans={plans} />
-    </div>
+  <div class="homeGrid">
+    <main class="homeCol">
+      <section class="homeSection">
+        <ArticleList posts={posts} limit={10} title="最新の記事" />
+      </section>
 
-      <div class="list" style="gap:18px;">
-      <PlanList plans={plans} />
-      
-      🔗SNSアカウント
-      <div class="snsRow">
-      <a class="item" href="https://x.com/neo_neco_">X</a>
-      <a class="item" href="https://note.com/neoneco">Note</a>
-      <a class="item" href="https://bookmeter.com/users/1179346">読メ</a>
-      <a class="item" href="https://www.youtube.com/@shuomatsumoto">YouTube</a>
-      </div>
+      <section class="homeSection">
+        <Calendar posts={posts} plans={plans} />
+      </section>
+    </main>
 
-    </div>
+    <aside class="homeCol">
+      <section class="homeSection">
+        <PlanList plans={plans} title="執筆予定" limit={8} />
+      </section>
+
+      <section class="homeSection">
+        <h2 class="h2" style="margin:0;">🔗 SNSアカウント</h2>
+        <div class="snsRow" role="list">
+          <a class="item" href="https://x.com/neo_neco_">X</a>
+          <a class="item" href="https://note.com/neoneco">Note</a>
+          <a class="item" href="https://bookmeter.com/users/1179346">読メ</a>
+          <a class="item" href="https://www.youtube.com/@shuomatsumoto">YouTube</a>
+        </div>
+      </section>
+    </aside>
   </div>
+
+  <style>
+    .homeGrid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.9fr;
+      gap: 18px;
+    }
+
+    .homeCol {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .homeSection {
+      padding: 0;
+      margin: 0;
+    }
+
+    /* SNS */
+    .snsRow {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .snsRow .item {
+      text-decoration: none;
+      color: var(--ink);
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .snsRow .item:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .homeGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </BaseLayout>
