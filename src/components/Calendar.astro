@@ -46,7 +46,7 @@ if (w.length) {
   weeks.push(w);
 }
 
-const monthLabel = `${Y}年${M}月`;
+const monthLabelInitial = `${Y}年${M}月`;
 const dow = ["日", "月", "火", "水", "木", "金", "土"];
 function ymd(day: number) {
   return `${Y}-${String(M).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -56,14 +56,17 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
+const postDatesAll = posts.map((p) => p.data.date);
+const planDatesAll = plans.map((p) => p.date);
+
 ---
 <section class="plainSection">
   <div class="sectionHead">
-    <h2 class="h2" style="margin:0;">{monthLabel}</h2>
+    <h2 class="h2" style="margin:0;" id="calMonthLabel">{monthLabelInitial}</h2>
     <div class="small mono">calendar</div>
   </div>
 
-  <div class="calGrid">
+  <div class="calGrid" id="calGrid" data-year={Y} data-month={M}>
     {dow.map((d) => (
       <div class="calDow">
         {d}
@@ -102,33 +105,75 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
     })}
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ BASE, postDatesAll, planDatesAll }}>
     (function () {
-      const BASE = {JSON.stringify(BASE)};
-      // Asia/Tokyo での「今日」を YYYY-MM-DD で作る
-      const fmt = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Asia/Tokyo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-      const today = fmt.format(new Date());
+      function ensureSlashEnd(s) {
+        if (!s) return "/";
+        return s.charAt(s.length - 1) === "/" ? s : s + "/";
+      }
 
-      const cell = document.querySelector(`[data-ymd="${today}"]`);
-      if (!cell) return;
+      function tokyoTodayYMD() {
+        // en-CA => YYYY-MM-DD
+        var fmt = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        return fmt.format(new Date());
+      }
 
-      cell.classList.add("isToday");
+      function applyTodayStamp() {
+        var grid = document.getElementById("calGrid");
+        if (!grid) return false;
 
-      // すでに追加済みなら二重に入れない
-      if (cell.querySelector(".todayStamp")) return;
+        var base = ensureSlashEnd(BASE);
+        var today = tokyoTodayYMD();
 
-      const img = document.createElement("img");
-      img.src = `${BASE}images/deco/sun2.jpg`;
-      img.alt = "";
-      img.setAttribute("aria-hidden", "true");
-      img.className = "todayStamp";
-      img.loading = "lazy";
-      cell.appendChild(img);
+        var cell = grid.querySelector('[data-ymd="' + today + '"]');
+        if (!cell) return false;
+
+        cell.classList.add("isToday");
+
+        // already stamped?
+        if (cell.querySelector(".todayStamp")) return true;
+
+        var img = document.createElement("img");
+        img.src = base + "images/deco/sun2.jpg";
+        img.alt = "";
+        img.setAttribute("aria-hidden", "true");
+        img.className = "todayStamp";
+        img.loading = "lazy";
+
+        // Inline styles so Astro-scoped CSS is not required
+        img.style.position = "absolute";
+        img.style.top = "2px";
+        img.style.right = "2px";
+        img.style.width = "22px";
+        img.style.height = "14px";
+        img.style.objectFit = "cover";
+        img.style.opacity = "0.95";
+        img.style.borderRadius = "4px";
+        img.style.zIndex = "1";
+
+        cell.appendChild(img);
+        return true;
+      }
+
+      // DOM timing differences: retry a bit
+      var tries = 0;
+      function retry() {
+        if (applyTodayStamp()) return;
+        tries += 1;
+        if (tries >= 30) return;
+        setTimeout(retry, 50);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", retry, { once: true });
+      } else {
+        retry();
+      }
     })();
   </script>
 
@@ -151,60 +196,54 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
     .calGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
+      gap: 6px;
     }
 
     .calDow {
       text-align: center;
-      font-size: 0.85em;
+      font-size: 0.78em;
       color: var(--muted);
+      padding-bottom: 2px;
     }
 
     .calCell {
-      height: 44px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      border-bottom: 1px dotted var(--line);
-      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 7px;
+      background: transparent;
     }
 
     .calCell:hover {
-      background: rgba(0,0,0,0.03);
+      background: rgba(0,0,0,0.02);
     }
 
     .calNum {
-      font-size: 0.95em;
+      font-size: 0.9em;
     }
 
-    .todayStamp {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 28px;
-      height: 20px;
-      object-fit: cover;
-      opacity: 1;
-      border-radius: 5px;
-      z-index: 1;
-    }
 
     .calCell.isToday {
-      outline: 1px solid rgba(200, 150, 70, 0.28);
-      background: rgba(230, 190, 120, 0.10);
+      border-color: rgba(200, 150, 70, 0.32);
+      background: rgba(230, 190, 120, 0.06);
     }
 
     .mark {
       position: absolute;
-      bottom: 6px;
-      right: 8px;
-      font-size: 12px;
+      bottom: 4px;
+      right: 6px;
+      font-size: 11px;
       color: var(--muted);
+      opacity: 0.85;
     }
 
     .calLegend {
-      margin-top: 10px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.85em;
     }
   </style>
 </section>
