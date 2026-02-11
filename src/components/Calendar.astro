@@ -19,11 +19,6 @@ const now = new Date();
 const Y = year ?? now.getFullYear();
 const M = month ?? (now.getMonth() + 1);
 
-// 今日（ローカル日付で YYYY-MM-DD）
-const localToday = new Date();
-const todayYMD = `${localToday.getFullYear()}-${String(localToday.getMonth() + 1).padStart(2, "0")}-${String(
-  localToday.getDate()
-).padStart(2, "0")}`;
 
 const first = new Date(Y, M - 1, 1);
 const last = new Date(Y, M, 0);
@@ -81,25 +76,15 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       const key = ymd(day);
       const hasPost = postDates.has(key);
       const hasPlan = planDates.has(key);
-      const isToday = key === todayYMD;
 
       return (
         <a href={`${BASE}date/${key}`} style="text-decoration:none;">
-          <div class="calCell" title={isToday ? "今日" : hasPost ? "記事あり" : hasPlan ? "執筆予定あり" : ""}>
+          <div
+            class="calCell"
+            data-ymd={key}
+            title={hasPost ? "記事あり" : hasPlan ? "執筆予定あり" : ""}
+          >
             <span class="calNum mono">{day}</span>
-
-            {/* 今日だけ：sun2.jpg を表示（右上・小さめ・浮かせない） */}
-            {isToday && (
-            <img
-              src={`${BASE}images/deco/sun2.jpg`}
-              alt=""
-              aria-hidden="true"
-              class="todayStamp"
-              loading="lazy"
-            />
-
-            )}
-
             {/* ● = 記事あり / ○ = 予定あり */}
             {hasPost && (
               <span aria-hidden="true" class="mark">
@@ -116,6 +101,36 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       );
     })}
   </div>
+
+  <script is:inline>
+    (function () {
+      const BASE = {JSON.stringify(BASE)};
+      // Asia/Tokyo での「今日」を YYYY-MM-DD で作る
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Tokyo",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      const today = fmt.format(new Date());
+
+      const cell = document.querySelector(`[data-ymd="${today}"]`);
+      if (!cell) return;
+
+      cell.classList.add("isToday");
+
+      // すでに追加済みなら二重に入れない
+      if (cell.querySelector(".todayStamp")) return;
+
+      const img = document.createElement("img");
+      img.src = `${BASE}images/deco/sun2.jpg`;
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      img.className = "todayStamp";
+      img.loading = "lazy";
+      cell.appendChild(img);
+    })();
+  </script>
 
   <div class="calLegend small">● = 記事がある / ○ = 執筆予定がある</div>
 
@@ -172,6 +187,12 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       object-fit: cover;
       opacity: 1;
       border-radius: 5px;
+      z-index: 1;
+    }
+
+    .calCell.isToday {
+      outline: 1px solid rgba(200, 150, 70, 0.28);
+      background: rgba(230, 190, 120, 0.10);
     }
 
     .mark {
