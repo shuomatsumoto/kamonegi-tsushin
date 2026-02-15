@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
-import { categoryMeta } from "../../components/category";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
@@ -13,7 +12,6 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-const meta = categoryMeta[post.data.category];
 const { Content } = await post.render();
 
 function thumbSrc(raw?: string) {
@@ -43,26 +41,31 @@ function thumbSrc(raw?: string) {
       </div>
     ) : null}
     <div class="articleMeta">
-      <span class="metaLeft">
-        <span aria-hidden="true">{meta.icon}</span>
-        <a href={`${BASE}category/${meta.slug}`} class="categoryLink">
+      {post.data.series ? (
+        <a href={`${BASE}series/${encodeURIComponent(post.data.series)}`} class="seriesLink">
+          {post.data.series}
+        </a>
+      ) : null}
+
+      <div class="metaLine">
+        <a href={`${BASE}category/${encodeURIComponent(post.data.category)}`} class="categoryLink">
           {post.data.category}
         </a>
-      </span>
 
-      <span class="small mono">{post.data.date}</span>
+        {post.data.tags?.length
+          ? (
+              <span class="small tags">
+                {post.data.tags.map((t) => (
+                  <>
+                    <a href={`${BASE}tags/${encodeURIComponent(t)}`} class="tagLink">#{t}</a>{" "}
+                  </>
+                ))}
+              </span>
+            )
+          : null}
 
-      {post.data.tags?.length
-        ? (
-            <span class="small tags">
-              {post.data.tags.map((t) => (
-                <>
-                  <a href={`${BASE}tags/${encodeURIComponent(t)}`} class="tagLink">#{t}</a>{" "}
-                </>
-              ))}
-            </span>
-          )
-        : null}
+        <span class="small mono dateText">{post.data.date}</span>
+      </div>
     </div>
 
     <h1 class="h1">{post.data.title}</h1>
@@ -77,10 +80,13 @@ function thumbSrc(raw?: string) {
   .plainArticle {
     padding: 0;
     margin: 0;
+    padding-top: 15px;
+    max-width: 760px;
+    margin-inline: auto;
   }
 
   .heroThumb {
-    margin: 0 0 12px;
+    margin: 0 0 16px;
     overflow: hidden;
     border: none;
     background: none;
@@ -95,19 +101,22 @@ function thumbSrc(raw?: string) {
   }
 
   .prose :global(p) {
-    margin: 0 0 1em;
+    margin: 0 0 1.05em;
+    font-size: 1rem;
   }
 
   .prose :global(h2) {
-    margin: 1.6em 0 0.6em;
-    font-size: 1.2rem;
-    font-weight: 600;
+    margin: 1.8em 0 0.7em;
+    font-size: 1.18rem;
+    font-weight: 500;
   }
 
   .prose :global(h3) {
-    margin: 1.4em 0 0.5em;
-    font-size: 1.05rem;
-    font-weight: 600;
+    margin: 1.5em 0% 0.6em;
+    font-size: 1.02rem;
+    font-weight: 400;
+    color: var(--muted);
+    opacity: 0.7;
   }
 
   .prose :global(a) {
@@ -123,18 +132,18 @@ function thumbSrc(raw?: string) {
   }
 
   .articleMeta {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: baseline;
-    font-size: 0.9em;
+    display: grid;
+    gap: 6px;
+    font-size: 0.78rem;
     color: var(--muted);
+    margin-bottom: 8px;
   }
 
-  .metaLeft {
+  .metaLine {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     align-items: baseline;
+    flex-wrap: wrap;
   }
 
   .categoryLink {
@@ -144,6 +153,18 @@ function thumbSrc(raw?: string) {
 
   .categoryLink:hover {
     opacity: 0.75;
+  }
+
+  .seriesLink {
+    text-decoration: none;
+    color: #4d5f42;
+    font-weight: 700;
+    font-size: 0.86rem;
+    line-height: 1.25;
+  }
+
+  .seriesLink:hover {
+    opacity: 0.82;
   }
 
   .tags {
@@ -159,5 +180,15 @@ function thumbSrc(raw?: string) {
 
   .tagLink:hover {
     opacity: 0.75;
+  }
+
+  .dateText {
+    opacity: 0.78;
+  }
+
+  .plainArticle .h1 {
+    font-size: clamp(1.45rem, 2.7vw, 1.82rem);
+    line-height: 1.38;
+    margin: 0 0 16px;
   }
 </style>

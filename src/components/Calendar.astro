@@ -46,7 +46,7 @@ if (w.length) {
   weeks.push(w);
 }
 
-const monthLabelInitial = `${Y}年${M}月`;
+const monthLabelInitial = `〈${Y}年${M}月〉`;
 const dow = ["日", "月", "火", "水", "木", "金", "土"];
 function ymd(day: number) {
   return `${Y}-${String(M).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -56,13 +56,10 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
-const postDatesAll = posts.map((p) => p.data.date);
-const planDatesAll = plans.map((p) => p.date);
-
 ---
 <section class="plainSection">
   <div class="sectionHead">
-    <h2 class="h2" style="margin:0;" id="calMonthLabel">{monthLabelInitial}</h2>
+    <h2 id="calMonthLabel">{monthLabelInitial}</h2>
     <div class="small mono">calendar</div>
   </div>
 
@@ -74,14 +71,14 @@ const planDatesAll = plans.map((p) => p.date);
     ))}
 
     {weeks.flat().map((day) => {
-      if (day === null) return <div style="height:40px;"></div>;
+      if (day === null) return <div class="calBlank"></div>;
 
       const key = ymd(day);
       const hasPost = postDates.has(key);
       const hasPlan = planDates.has(key);
 
       return (
-        <a href={`${BASE}date/${key}`} style="text-decoration:none;">
+        <a href={`${BASE}date/${key}`} class="calLink">
           <div
             class="calCell"
             data-ymd={key}
@@ -105,13 +102,8 @@ const planDatesAll = plans.map((p) => p.date);
     })}
   </div>
 
-  <script is:inline define:vars={{ BASE, postDatesAll, planDatesAll }}>
+  <script is:inline>
     (function () {
-      function ensureSlashEnd(s) {
-        if (!s) return "/";
-        return s.charAt(s.length - 1) === "/" ? s : s + "/";
-      }
-
       function tokyoTodayYMD() {
         // en-CA => YYYY-MM-DD
         var fmt = new Intl.DateTimeFormat("en-CA", {
@@ -127,36 +119,12 @@ const planDatesAll = plans.map((p) => p.date);
         var grid = document.getElementById("calGrid");
         if (!grid) return false;
 
-        var base = ensureSlashEnd(BASE);
         var today = tokyoTodayYMD();
 
         var cell = grid.querySelector('[data-ymd="' + today + '"]');
         if (!cell) return false;
 
         cell.classList.add("isToday");
-
-        // already stamped?
-        if (cell.querySelector(".todayStamp")) return true;
-
-        var img = document.createElement("img");
-        img.src = base + "images/deco/sun2.jpg";
-        img.alt = "";
-        img.setAttribute("aria-hidden", "true");
-        img.className = "todayStamp";
-        img.loading = "lazy";
-
-        // Inline styles so Astro-scoped CSS is not required
-        img.style.position = "absolute";
-        img.style.top = "2px";
-        img.style.right = "2px";
-        img.style.width = "22px";
-        img.style.height = "14px";
-        img.style.objectFit = "cover";
-        img.style.opacity = "0.95";
-        img.style.borderRadius = "4px";
-        img.style.zIndex = "1";
-
-        cell.appendChild(img);
         return true;
       }
 
@@ -190,60 +158,90 @@ const planDatesAll = plans.map((p) => p.date);
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
-      margin: 0 0 8px;
+      margin: 0 0 10px;
+    }
+
+    .sectionHead h2 {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.15;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.04em;
     }
 
     .calGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(64, 54, 40, 0.13);
+      border-radius: 0;
+      background: #fff;
+    }
+
+    .calLink {
+      text-decoration: none;
     }
 
     .calDow {
       text-align: center;
-      font-size: 0.78em;
+      font-size: 0.7rem;
       color: var(--muted);
-      padding-bottom: 2px;
+      letter-spacing: 0.04em;
+      padding-bottom: 3px;
+      text-transform: uppercase;
+      opacity: 0.9;
     }
 
     .calCell {
-      height: 34px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      border: 1px solid rgba(0,0,0,0.06);
-      border-radius: 7px;
-      background: transparent;
+      border: 1px solid rgba(64, 54, 40, 0.08);
+      border-radius: 0;
+      background: #fff;
+      transition: border-color 0.15s ease, background 0.15s ease;
     }
 
     .calCell:hover {
-      background: rgba(0,0,0,0.02);
+      border-color: rgba(77, 92, 66, 0.4);
+      background: rgba(77, 92, 66, 0.04);
     }
 
     .calNum {
-      font-size: 0.9em;
+      font-size: 0.88rem;
+      color: var(--ink);
     }
 
 
     .calCell.isToday {
-      border-color: rgba(200, 150, 70, 0.32);
-      background: rgba(230, 190, 120, 0.06);
+      border-color: rgba(77, 92, 66, 0.5);
+      background: rgba(77, 92, 66, 0.08);
     }
 
     .mark {
       position: absolute;
-      bottom: 4px;
+      bottom: 5px;
       right: 6px;
-      font-size: 11px;
-      color: var(--muted);
-      opacity: 0.85;
+      font-size: 0.62rem;
+      color: var(--accent);
+      opacity: 0.82;
+    }
+
+    .calBlank {
+      height: 38px;
+      border-radius: 0;
+      background: rgba(64, 54, 40, 0.03);
     }
 
     .calLegend {
-      margin-top: 8px;
+      margin-top: 10px;
       color: var(--muted);
-      font-size: 0.85em;
+      font-size: 0.76rem;
+      text-align: right;
     }
   </style>
 </section>
