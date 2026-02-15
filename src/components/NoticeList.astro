@@ -1,0 +1,70 @@
+---
+type Notice = {
+  date: string;
+  title: string;
+  href?: string;
+};
+
+const { notices, limit, title = "お知らせ" } = Astro.props as {
+  notices: Notice[];
+  limit?: number;
+  title?: string;
+};
+
+const shown = typeof limit === "number" ? notices.slice(0, limit) : notices;
+---
+<section class="plainSection">
+  <div class="sectionHead">
+    <h2 class="h2" style="margin:0;">{title}</h2>
+  </div>
+
+  <ul class="postList">
+    {shown.map((n) => (
+      <li>
+        {n.href ? (
+          <a class="noticeRow" href={n.href}>
+            <strong class="title">{n.title}</strong>
+            <span class="date">{n.date}</span>
+          </a>
+        ) : (
+          <div class="noticeRow">
+            <strong class="title">{n.title}</strong>
+            <span class="date">{n.date}</span>
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .plainSection { padding: 0; margin: 0; }
+  .sectionHead { margin: 0 0 8px; }
+  .postList { list-style: none; padding: 0; margin: 0; }
+
+  .noticeRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--line);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  a.noticeRow:hover {
+    opacity: 0.9;
+  }
+
+  .date {
+    font-size: 0.85em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .noticeRow { flex-direction: column; gap: 4px; }
+    .date { white-space: normal; }
+  }
+</style>
