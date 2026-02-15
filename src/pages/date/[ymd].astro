@@ -2,12 +2,12 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import plans from "../../data/plans.json";
-import { categoryMeta, toYMD } from "../../components/category";
+import { toYMD } from "../../components/category";
 
 type Plan = {
   date: string;
   title: string;
-  category: "雑記" | "分析" | "創作" | "紹介";
+  category: string;
   status?: string;
 };
 
@@ -43,12 +43,10 @@ const dayPlans = (plans as Plan[]).filter((p) => p.date === ymd);
     <ul class="postList">
       {/* 記事 */}
       {postsAll.map((p) => {
-        const meta = categoryMeta[p.data.category];
         return (
           <li>
             <a class="postRow" href={`${BASE}posts/${p.slug}`}>
               <span class="left">
-                <span class="icon" aria-hidden="true">{meta.icon}</span>
                 <span class="category">{p.data.category}</span>
                 <span class="sep">｜</span>
                 <strong class="title">{p.data.title}</strong>
@@ -67,12 +65,10 @@ const dayPlans = (plans as Plan[]).filter((p) => p.date === ymd);
 
       {/* 予定 */}
       {dayPlans.map((p) => {
-        const meta = categoryMeta[p.category];
         return (
           <li>
             <a class="postRow" href={`${BASE}date/${p.date}`}>
               <span class="left">
-                <span class="icon" aria-hidden="true">{meta.icon}</span>
                 <span class="category">{p.category}</span>
                 <span class="sep">｜</span>
                 <strong class="title">

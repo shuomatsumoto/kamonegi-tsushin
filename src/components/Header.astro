@@ -3,30 +3,242 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 ---
-<header>
+<header class="siteHeader">
   <div class="headerTop">
-    <h1 class="h1" style="margin:0;">
+    <h1 class="siteTitle" style="margin:0;">
       <a href={BASE} class="siteTitleLink">かもねぎ通信</a>
     </h1>
 
-    <div class="iconRow" aria-hidden="true">
-      <img src={`${BASE}images/deco/sun1.jpg`} alt="" />
-      <img src={`${BASE}images/deco/moon.jpg`} alt="" />
-      <img src={`${BASE}images/deco/star.jpg`} alt="" />
-      <img src={`${BASE}images/deco/negi1.jpg`} alt="" />
-      <img src={`${BASE}images/deco/negi2.jpg`} alt="" />
-      <img src={`${BASE}images/deco/negi3.jpg`} alt="" />
-      <img src={`${BASE}images/deco/neco1.jpg`} alt="" />
-      <img src={`${BASE}images/deco/kamonegi.jpg`} alt="" />
+    <div class="headerControls">
+      <button id="sunFab" class="sunFab" type="button" aria-label="menu" aria-expanded="false">
+        ☀️
+      </button>
+
+      <button
+        id="searchFab"
+        class="searchFab"
+        type="button"
+        aria-label="search"
+        aria-expanded="false"
+      >
+        🔍
+      </button>
     </div>
   </div>
 
-  <div class="small">個人しんぶん・研究ノート・せいかつ誌</div>
+  <div class="small headerSub">個人しんぶん・研究ノート・せいかつ誌</div>
+
+  <form
+    id="headSearch"
+    class="headSearchPanel"
+    action={`${BASE}all`}
+    method="get"
+    role="search"
+    aria-label="記事検索"
+    data-open="false"
+  >
+    <input
+      id="headSearchInput"
+      class="headSearchInput"
+      type="search"
+      name="q"
+      placeholder="記事を検索"
+    />
+  </form>
 
   <style>
     .siteTitleLink {
-      color: inherit;
+      color: var(--ink);
       text-decoration: none;
+      letter-spacing: 0.03em;
+    }
+
+    .siteTitle {
+      font-size: 1.34rem;
+      font-weight: 500;
+      line-height: 1.2;
+      grid-column: 2;
+      justify-self: center;
+    }
+
+    .headerControls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      grid-column: 3;
+      justify-self: end;
+    }
+
+    .headerTop {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .headSearchPanel {
+      position: fixed;
+      top: var(--site-header-bottom, var(--float-panel-top-current, var(--float-panel-top)));
+      left: 50%;
+      transform: translate(-50%, -8px);
+      width: min(940px, calc(100vw - 40px));
+      margin: 0;
+      padding: 8px 14px;
+      background: rgba(252, 249, 242, 0.98);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 0 0 12px 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 36;
+    }
+
+    .headSearchPanel[data-open="true"] {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+    }
+
+    .headSearchInput {
+      width: 100%;
+      height: 36px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--ink);
+      padding: 0 8px;
+      font-size: 0.86rem;
+      font-family: inherit;
+    }
+
+    .headSearchInput:focus {
+      outline: none;
+    }
+
+    .searchFab {
+      width: 30px;
+      height: 30px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .sunFab {
+      width: 30px;
+      height: 30px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      padding: 0;
+      line-height: 1;
+      transition: transform 0.18s ease;
+    }
+
+    .sunFab[aria-expanded="true"] {
+      transform: rotate(18deg);
+    }
+
+    .headerSub {
+      margin-top: 5px;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      .headerTop {
+        grid-template-columns: 1fr;
+      }
+
+      .siteTitle {
+        grid-column: 1;
+      }
+
+      .headerControls {
+        grid-column: 1;
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      .headSearchPanel {
+        top: var(--site-header-bottom, var(--float-panel-top-current, var(--float-panel-top-mobile)));
+      }
     }
   </style>
+
+  <script is:inline>
+    (function () {
+      function onReady(fn) {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", fn, { once: true });
+        } else {
+          fn();
+        }
+      }
+
+      onReady(function () {
+        var header = document.querySelector(".siteHeader");
+        var btn = document.getElementById("searchFab");
+        var form = document.getElementById("headSearch");
+        var input = document.getElementById("headSearchInput");
+        if (!btn || !form || !input || !header) return;
+
+        function syncPanelTop() {
+          var rect = header.getBoundingClientRect();
+          var top = Math.max(0, Math.ceil(rect.bottom));
+          var topRow = header.querySelector(".headerTop");
+          var topRowBottom = top;
+          if (topRow) {
+            var topRowRect = topRow.getBoundingClientRect();
+            topRowBottom = Math.max(0, Math.ceil(topRowRect.bottom));
+          }
+          document.documentElement.style.setProperty("--site-header-toprow-bottom", topRowBottom + "px");
+          document.documentElement.style.setProperty("--site-header-bottom", top + "px");
+          document.documentElement.style.setProperty("--float-panel-top-current", top + "px");
+        }
+
+        syncPanelTop();
+        window.addEventListener("resize", syncPanelTop);
+        window.addEventListener("scroll", syncPanelTop, { passive: true });
+
+        function setOpen(next) {
+          form.setAttribute("data-open", next ? "true" : "false");
+          btn.setAttribute("aria-expanded", next ? "true" : "false");
+          if (next) {
+            syncPanelTop();
+            setTimeout(function () { input.focus(); }, 80);
+          }
+        }
+
+        btn.addEventListener("click", function () {
+          var open = form.getAttribute("data-open") === "true";
+          setOpen(!open);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e && e.key === "Escape") setOpen(false);
+        });
+
+        document.addEventListener("click", function (e) {
+          var t = e && e.target;
+          if (!t) return;
+          var open = form.getAttribute("data-open") === "true";
+          if (!open) return;
+          if (btn.contains(t)) return;
+          if (form.contains(t)) return;
+          setOpen(false);
+        });
+      });
+    })();
+  </script>
 </header>

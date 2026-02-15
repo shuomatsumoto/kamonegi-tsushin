@@ -6,61 +6,64 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 const topItems = [
   { href: `${BASE}`, label: "ホーム", icon: "☀️" },
   { href: `${BASE}all`, label: "記事一覧", icon: "🗂" },
-];
-
-const catItems = [
-  { href: `${BASE}category/zatsuki`, label: "雑記", icon: "🗒️" },
-  { href: `${BASE}category/analysis`, label: "分析", icon: "🪓" },
-  { href: `${BASE}category/creation`, label: "創作", icon: "🪄" },
-  { href: `${BASE}category/shokai`, label: "紹介", icon: "🗞️" },
+  { href: `${BASE}category`, label: "カテゴリ一覧", icon: "📚" },
+  { href: `${BASE}series`, label: "連載一覧", icon: "📘" },
+  { href: `${BASE}tags`, label: "タグ一覧", icon: "#" },
 ];
 ---
-
-<button id="sunFab" class="sunFab" type="button" aria-label="menu" aria-expanded="false">
-  ☀️
-</button>
-
 <nav id="sunMenu" class="sunMenu" data-open="false" aria-label="site navigation">
   <div class="sunInner">
-    {topItems.map((it) => (
-      <a href={it.href} class="sunLink">
-        <span class="sunIcon" aria-hidden="true">{it.icon}</span>
-        <span class="sunLabel">{it.label}</span>
-      </a>
-    ))}
-
-    <div class="sunDivider" aria-hidden="true">———</div>
-
-    {catItems.map((it) => (
-      <a href={it.href} class="sunLink">
-        <span class="sunIcon" aria-hidden="true">{it.icon}</span>
-        <span class="sunLabel">{it.label}</span>
-      </a>
+    {topItems.map((it, idx) => (
+      <>
+        {idx === 2 ? <span class="sunSep" aria-hidden="true">｜</span> : null}
+        <a href={it.href} class="sunLink">
+          <span class="sunIcon" aria-hidden="true">{it.icon}</span>
+          <span class="sunLabel">{it.label}</span>
+        </a>
+      </>
     ))}
   </div>
 
 </nav>
 <style>
   .sunMenu {
-    width: 150px;              /* slimmer overall width */
-    max-width: 70vw;
-    background: rgba(255,255,255,0.92);
-    backdrop-filter: blur(4px);
-    border-right: 1px solid rgba(0,0,0,0.06);
+    position: fixed;
+    top: var(--site-header-bottom, var(--float-panel-top-current, var(--float-panel-top)));
+    left: 50%;
+    transform: translate(-50%, -8px);
+    width: min(940px, calc(100vw - 40px));
+    background: rgba(252, 249, 242, 0.98);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    border-radius: 0 0 12px 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 35;
+  }
+
+  .sunMenu[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
   }
 
   .sunInner {
-    padding: 10px 10px;
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
   }
 
   .sunLink {
-    display: flex;
+    display: inline-flex;
     gap: 6px;
     align-items: center;
-    padding: 4px 0;
+    padding: 3px 0;
     text-decoration: none;
-    color: var(--ink);
-    font-size: 0.88rem;
+    color: var(--muted);
+    font-size: 0.84rem;
     letter-spacing: 0.02em;
   }
 
@@ -74,11 +77,11 @@ const catItems = [
     font-size: 0.88rem;
   }
 
-  .sunDivider {
-    margin: 6px 0;
-    height: 1px;
-    background: rgba(0,0,0,0.08);
-    font-size: 0;
+  .sunSep {
+    color: var(--muted);
+    opacity: 0.6;
+    font-size: 0.82rem;
+    line-height: 1;
   }
 </style>
 
@@ -95,12 +98,25 @@ const catItems = [
     onReady(function () {
       var btn = document.getElementById("sunFab");
       var menu = document.getElementById("sunMenu");
-      var page = document.getElementById("pageWrap");
-      if (!btn || !menu || !page) return;
+      if (!btn || !menu) return;
+
+      function syncPanelTop() {
+        var header = document.querySelector(".siteHeader");
+        if (!header) return;
+        var rect = header.getBoundingClientRect();
+        var top = Math.max(0, Math.ceil(rect.bottom));
+        document.documentElement.style.setProperty("--float-panel-top-current", top + "px");
+      }
+
+      syncPanelTop();
+      window.addEventListener("resize", syncPanelTop);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(syncPanelTop).catch(function () {});
+      }
 
       function setOpen(next) {
+        if (next) syncPanelTop();
         menu.setAttribute("data-open", next ? "true" : "false");
-        page.setAttribute("data-shift", next ? "true" : "false");
         btn.setAttribute("aria-expanded", next ? "true" : "false");
       }
 

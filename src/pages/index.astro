@@ -14,7 +14,7 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
   <div class="homeGrid">
     <main class="homeCol">
       <section class="homeSection">
-        <ArticleList posts={posts} limit={10} title="最新の記事" />
+        <ArticleList posts={posts} limit={10} title="" />
       </section>
 
       <section class="homeSection">
@@ -24,17 +24,7 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 
     <aside class="homeCol homeAside">
       <section class="homeSection">
-        <NoticeList notices={notices} title="お知らせ" limit={8} />
-      </section>
-
-      <section class="homeSection">
-        <h2 class="h2" style="margin:0;">🔗 SNSアカウント</h2>
-        <div class="snsRow" role="list">
-          <a class="item" href="https://x.com/neo_neco_">X</a>
-          <a class="item" href="https://note.com/neoneco">Note</a>
-          <a class="item" href="https://bookmeter.com/users/1179346">読メ</a>
-          <a class="item" href="https://www.youtube.com/@shuomatsumoto">YouTube</a>
-        </div>
+        <NoticeList notices={notices} title="〈お知らせ〉" limit={8} />
       </section>
     </aside>
   </div>
@@ -42,8 +32,10 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
   <style>
     .homeGrid {
       display: grid;
-      grid-template-columns: 1.3fr 0.85fr;
-      gap: 16px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      gap: 26px;
+      align-items: start;
+      justify-content: center;
     }
 
     .homeCol {
@@ -54,8 +46,8 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
     }
 
     .homeAside {
-      padding-left: 14px;
-      border-left: 1px solid rgba(0,0,0,0.06);
+      padding-left: 0;
+      border-left: 0;
     }
 
     .homeSection {
@@ -63,36 +55,16 @@ const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
       margin: 0;
     }
 
-    /* SNS */
-    .snsRow {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .snsRow .item {
-      text-decoration: none;
-      color: var(--ink);
-      padding: 5px 10px;
-      border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 999px;
-      font-size: 0.88em;
-      line-height: 1.1;
-      background: transparent;
-    }
-
-    .snsRow .item:hover {
-      opacity: 0.85;
-    }
-
     @media (max-width: 900px) {
       .homeGrid {
         grid-template-columns: 1fr;
+        gap: 18px;
       }
       .homeAside {
         padding-left: 0;
         border-left: 0;
+        border-top: 0;
+        padding-top: 0;
       }
     }
   </style>

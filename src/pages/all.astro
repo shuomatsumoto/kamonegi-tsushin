@@ -1,7 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
-import { categoryMeta, toYMD } from "../components/category";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
@@ -15,90 +14,101 @@ const posts = [...postsAll].sort((a, b) => {
   return a.slug < b.slug ? 1 : -1;
 });
 
-// 現行カテゴリ（4分類）を常に表示（記事が0でも壊れない）
-const categories = Object.keys(categoryMeta) as Array<keyof typeof categoryMeta>;
+const categories = Array.from(new Set(posts.map((p) => p.data.category)))
+  .sort((a, b) => a.localeCompare(b, "ja"));
 
 function safeTags(tags: unknown): string[] {
   return Array.isArray(tags) ? tags.filter((t) => typeof t === "string") : [];
 }
 
+function thumbSrc(raw?: string) {
+  if (!raw) return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/")) return `${BASE}${raw.slice(1)}`;
+  return `${BASE}${raw.replace(/^\/+/, "")}`;
+}
+
 const data = posts.map((p) => ({
   slug: p.slug,
   title: p.data.title,
+  summary: p.data.summary ?? "",
   date: p.data.date,
-  ymd: toYMD(p.data.date),
+  series: p.data.series ?? "",
   category: p.data.category,
+  thumb: thumbSrc(p.data.thumbnail),
   tags: safeTags(p.data.tags),
 }));
 ---
 <BaseLayout title="記事一覧 | かもねぎ通信">
-  <div class="head">
-    <h1 class="h1" style="margin:0;">記事一覧</h1>
-    <div class="small">最新順 / 検索・絞り込み</div>
-  </div>
+  <section class="catalog">
+    <header class="catalogHead">
+      <h2 class="h2" style="margin:0;">記事一覧</h2>
+      <div class="catalogMeta">
+        <div id="qHint" class="small qHint" hidden></div>
+        <div class="small count"><span id="count">{data.length} 件</span></div>
+      </div>
+    </header>
 
-  <div class="tools">
-    <input id="q" class="q" type="search" placeholder="タイトル / タグ / カテゴリで検索（例：#創刊、分析、音楽）" />
+    <div class="tools" aria-label="絞り込みと並び替え">
+      <select id="cat" class="sel" aria-label="カテゴリで絞り込み">
+        <option value="">すべてのカテゴリ</option>
+        {categories.map((c) => (
+          <option value={c}>{c}</option>
+        ))}
+      </select>
 
-    <select id="cat" class="sel">
-      <option value="">すべてのカテゴリ</option>
-      {categories.map((c) => (
-        <option value={c}>{categoryMeta[c].icon} {c}</option>
-      ))}
-    </select>
-
-    <select id="sort" class="sel">
-      <option value="new">新しい順</option>
-      <option value="old">古い順</option>
-    </select>
-
-    <div class="small" style="margin-left:auto;">
-      <span id="count">{data.length} 件</span>
+      <select id="sort" class="sel" aria-label="並び順">
+        <option value="new">新しい順</option>
+        <option value="old">古い順</option>
+      </select>
     </div>
-  </div>
 
-  <div class="hr"></div>
-
-  {/* ✅ まず Astro 側で必ず表示（JSが落ちても見える） */}
-  <ul id="list" class="postList">
-    {data.map((it) => (
-      <li
-        class="li"
-        data-title={it.title}
-        data-category={it.category}
-        data-tags={it.tags.join(" ")}
-        data-date={it.date}
-        data-slug={it.slug}
-      >
-        <a class="postRow" data-category={it.category} href={`${BASE}posts/${it.slug}`}>
-          <span class="left">
-            <span class="icon" aria-hidden="true">{categoryMeta[it.category].icon}</span>
-            <span class="category">{it.category}</span>
-            <span class="sep">｜</span>
-            <strong class="title">{it.title}</strong>
-          </span>
-
-          <span class="right">
-            <span class="date">{it.ymd}</span>
-            {it.tags.length ? <span class="tags">#{it.tags.join(" #")}</span> : null}
-          </span>
-        </a>
-      </li>
-    ))}
-  </ul>
+    {/* ✅ まず Astro 側で必ず表示（JSが落ちても見える） */}
+    <ul id="list" class="postGrid">
+      {data.map((it) => (
+        <li
+          class="li cardItem"
+          data-title={it.title}
+          data-category={it.category}
+          data-tags={it.tags.join(" ")}
+          data-date={it.date}
+          data-slug={it.slug}
+        >
+          <a class="postCard" data-category={it.category} href={`${BASE}posts/${it.slug}`}>
+            {it.thumb ? <img class="thumb" src={it.thumb} alt="" loading="lazy" /> : null}
+            <div class="cardBody">
+              <div class="metaLine">
+                <span class="date mono">{it.date}</span>
+              </div>
+              <strong class="title">{it.title}</strong>
+              {it.summary ? <p class="summary">{it.summary}</p> : null}
+              <div class="metaStack">
+                {it.series ? <p class="seriesLine">{it.series}</p> : null}
+                <p class="metaInfo">
+                  <span class="category">{it.category}</span>
+                  {it.tags.length ? <span class="tags">#{it.tags.join(" #")}</span> : null}
+                </p>
+              </div>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
 
   {/* ✅ JS は “絞り込みだけ” 担当 */}
   <script is:inline>
-    const elQ = document.getElementById("q");
     const elCat = document.getElementById("cat");
     const elSort = document.getElementById("sort");
     const elCount = document.getElementById("count");
     const list = document.getElementById("list");
+    const qHint = document.getElementById("qHint");
+    const urlQ = new URLSearchParams(window.location.search).get("q") || "";
 
     function norm(s){ return (s || "").toString().trim().toLowerCase(); }
 
     function apply(){
-      const qRaw = norm(elQ.value);
+      const qRaw = norm(urlQ);
       const q = qRaw.startsWith("#") ? qRaw.slice(1) : qRaw;
       const cat = elCat.value;
       const sort = elSort.value;
@@ -137,37 +147,217 @@ const data = posts.map((p) => ({
       elCount.textContent = `${visible.length} 件`;
     }
 
-    elQ.addEventListener("input", apply);
+    if (qHint && urlQ.trim()) {
+      qHint.hidden = false;
+      qHint.textContent = `検索: 「${urlQ.trim()}」`;
+    }
+
     elCat.addEventListener("change", apply);
     elSort.addEventListener("change", apply);
+    apply();
   </script>
 
   <style>
-    .head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-    .tools { display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin-top: 10px; }
-    .q {
-      flex: 1 1 280px; min-width: 220px;
-      padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px;
-      background: white; color: var(--ink);
+    .catalog {
+      width: min(100%, 940px);
+      margin-inline: auto;
+      display: grid;
+      gap: 14px;
     }
-    .sel { padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); }
 
-    .postList { list-style:none; padding:0; margin:0; }
-    .postRow {
-      display:flex; justify-content: space-between; gap: 12px;
-      padding: 8px 0; border-bottom: 1px dotted var(--line);
-      text-decoration:none; color: var(--ink);
+    .catalogHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 4px;
     }
-    .left { display:flex; gap:6px; align-items:baseline; flex-wrap:wrap; }
-    .right { display:flex; gap:10px; align-items:baseline; color: var(--muted); font-size: 0.9em; white-space: nowrap; }
-    .icon { font-size: 1em; }
-    .category { color: var(--muted); font-size: 0.9em; }
-    .sep { color: var(--muted); }
-    .tags { color: var(--muted); }
+
+    .catalogMeta {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-bottom: 10px;
+      border-bottom: 1px dotted var(--line);
+    }
+
+    .qHint {
+      color: var(--muted);
+      font-size: 0.8rem;
+      opacity: 0.82;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      opacity: 0.82;
+    }
+
+    .sel {
+      min-width: 130px;
+      height: 30px;
+      padding: 0 9px;
+      border: 1px solid rgba(64, 54, 40, 0.2);
+      border-radius: 0;
+      background: #fff;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+
+    .postGrid {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cardItem {
+      min-width: 0;
+    }
+
+    .postCard {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid rgba(64, 54, 40, 0.14);
+      background: #fff;
+      height: 100%;
+      transition: border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .postCard:hover {
+      border-color: rgba(64, 54, 40, 0.3);
+      background: #fdfcf9;
+    }
+
+    .thumb {
+      display: block;
+      width: 100%;
+      aspect-ratio: 8 / 5;
+      object-fit: cover;
+      border-bottom: 1px solid rgba(64, 54, 40, 0.12);
+    }
+
+    .cardBody {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+      padding: 9px 10px 10px;
+    }
+
+    .metaLine {
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .icon { font-size: 0.9em; }
+
+    .category {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .date {
+      font-size: 0.7rem;
+      opacity: 0.74;
+      white-space: nowrap;
+    }
+
+    .title {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.36;
+      color: var(--ink);
+      font-weight: 400;
+    }
+
+    .summary {
+      margin: 0;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: var(--muted);
+      opacity: 0.74;
+    }
+
+    .seriesLine {
+      margin: 0;
+      font-size: 0.8rem;
+      line-height: 1.2;
+      color: #4d5f42;
+      font-weight: 700;
+    }
+
+    .metaStack {
+      margin-top: 20px !important;
+      padding-top: 0;
+      display: grid;
+      gap: 0;
+    }
+
+    .summary + .metaStack,
+    .title + .metaStack {
+      margin-top: 20px !important;
+    }
+
+    .metaInfo {
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: baseline;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .tags {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.62;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .postGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
 
     @media (max-width: 640px) {
-      .postRow { flex-direction: column; gap: 4px; }
-      .right { white-space: normal; }
+      .catalogHead {
+        align-items: flex-start;
+      }
+
+      .tools {
+        gap: 6px;
+      }
+
+      .sel {
+        width: 100%;
+      }
+
+      .postGrid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </BaseLayout>
