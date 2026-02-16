@@ -19,7 +19,12 @@ const daysInMonth = last.getDate();
 
 const monthPrefix = `${Y}-${String(M).padStart(2, "0")}-`;
 
-const postDates = new Set(posts.map((p) => p.data.date).filter((d) => d.startsWith(monthPrefix)));
+const postCountByDate = posts.reduce((acc, p) => {
+  const d = p.data.date;
+  if (!d.startsWith(monthPrefix)) return acc;
+  acc.set(d, (acc.get(d) ?? 0) + 1);
+  return acc;
+}, new Map<string, number>());
 
 const weeks: Array<Array<number | null>> = [];
 let w: Array<number | null> = [];
@@ -64,7 +69,8 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       if (day === null) return <div class="calBlank"></div>;
 
       const key = ymd(day);
-      const hasPost = postDates.has(key);
+      const postCount = postCountByDate.get(key) ?? 0;
+      const hasPost = postCount > 0;
 
       return (
         <a href={`${BASE}date/${key}`} class="calLink">
@@ -74,10 +80,10 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
             title={hasPost ? "記事あり" : ""}
           >
             <span class="calNum mono">{day}</span>
-            {/* ● = 記事あり */}
+            {/* 記事数 */}
             {hasPost && (
               <span aria-hidden="true" class="mark">
-                ●
+                {postCount}
               </span>
             )}
           </div>
@@ -128,8 +134,6 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       }
     })();
   </script>
-
-  <div class="calLegend small">● = 記事がある</div>
 
   <style>
     .plainSection {
@@ -210,7 +214,8 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       position: absolute;
       bottom: 5px;
       right: 6px;
-      font-size: 0.62rem;
+      font-size: 0.66rem;
+      font-weight: 600;
       color: var(--accent);
       opacity: 0.82;
     }

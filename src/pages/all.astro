@@ -77,10 +77,8 @@ const data = posts.map((p) => ({
           <a class="postCard" data-category={it.category} href={`${BASE}posts/${it.slug}`}>
             {it.thumb ? <img class="thumb" src={it.thumb} alt="" loading="lazy" /> : null}
             <div class="cardBody">
-              <div class="metaLine">
-                <span class="date mono">{it.date}</span>
-              </div>
               <strong class="title">{it.title}</strong>
+              <p class="date mono">{it.date}</p>
               {it.summary ? <p class="summary">{it.summary}</p> : null}
               <div class="metaStack">
                 {it.series ? <p class="seriesLine">{it.series}</p> : null}
@@ -258,17 +256,6 @@ const data = posts.map((p) => ({
       padding: var(--space-2) var(--space-3) var(--space-3);
     }
 
-    .metaLine {
-      display: flex;
-      justify-content: flex-end;
-      align-items: baseline;
-      gap: var(--space-2);
-      color: var(--muted);
-      font-size: 0.74rem;
-    }
-
-    .icon { font-size: 0.9em; }
-
     .category {
       display: inline-flex;
       gap: 4px;
@@ -277,8 +264,10 @@ const data = posts.map((p) => ({
     }
 
     .date {
-      font-size: 0.7rem;
-      opacity: 0.74;
+      margin: 0;
+      font-size: 0.74rem;
+      color: var(--muted);
+      opacity: 0.78;
       white-space: nowrap;
     }
 
