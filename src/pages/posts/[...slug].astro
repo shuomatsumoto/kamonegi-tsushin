@@ -73,7 +73,62 @@ function thumbSrc(raw?: string) {
     <div class="prose">
       <Content />
     </div>
+
+    {post.data.supportUrl ? (
+      <section class="supportBox" aria-label="あと払い">
+        <h2 class="supportTitle">この記事に値段を付ける</h2>
+        <form
+          id="supportForm"
+          class="supportForm"
+          action={post.data.supportUrl}
+          method="get"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <input type="hidden" name="wanted" value="true" />
+          <input type="hidden" name="price" id="supportPrice" value="" />
+          <label class="supportAmountLabel">
+            <span class="srOnly">金額</span>
+            <input
+              class="supportAmountInput"
+              type="number"
+              min="0"
+              step="1"
+              id="supportAmountJpy"
+              inputmode="numeric"
+              placeholder="0"
+            />
+            <span class="yenSuffix" aria-hidden="true">円</span>
+          </label>
+          <button class="supportButton" type="submit">決定</button>
+        </form>
+      </section>
+    ) : null}
   </article>
+
+  {post.data.supportUrl ? (
+    <script is:inline>
+      (function () {
+        var form = document.getElementById("supportForm");
+        var amount = document.getElementById("supportAmountJpy");
+        var price = document.getElementById("supportPrice");
+        if (!form || !amount || !price) return;
+
+        form.addEventListener("submit", function (e) {
+          var jpy = Math.max(0, Number(amount.value || "0"));
+          if (!jpy) {
+            e.preventDefault();
+            amount.focus();
+            return;
+          }
+          // Gumroad side appears to treat this with a 100x scale mismatch for JPY.
+          // Also apply a 90% factor to offset 10% tax uplift.
+          var adjustedJpy = jpy * 0.9;
+          price.value = (adjustedJpy / 100).toFixed(2);
+        });
+      })();
+    </script>
+  ) : null}
 </BaseLayout>
 
 <style>
@@ -116,7 +171,7 @@ function thumbSrc(raw?: string) {
     font-size: 1.02rem;
     font-weight: 400;
     color: var(--muted);
-    opacity: 0.7;
+    opacity: 0.9;
   }
 
   .prose :global(a) {
@@ -190,5 +245,78 @@ function thumbSrc(raw?: string) {
     font-size: clamp(1.45rem, 2.7vw, 1.82rem);
     line-height: 1.38;
     margin: 0 0 16px;
+  }
+
+  .supportBox {
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px dotted var(--line);
+    display: grid;
+    gap: 8px;
+  }
+
+  .supportTitle {
+    margin: 0;
+    font-size: 0.96rem;
+    line-height: 1.4;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .supportForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .supportAmountLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 0.84rem;
+  }
+
+  .supportAmountInput {
+    width: 110px;
+    height: 34px;
+    border: 1px solid rgba(64, 54, 40, 0.26);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.84rem;
+    padding: 0 10px;
+  }
+
+  .yenSuffix {
+    line-height: 1;
+    color: var(--muted);
+  }
+
+  .supportButton {
+    text-decoration: none;
+    border: 1px solid rgba(64, 54, 40, 0.26);
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.84rem;
+    line-height: 1;
+    padding: 8px 12px;
+  }
+
+  .supportButton:hover {
+    background: #f8f6f0;
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 </style>

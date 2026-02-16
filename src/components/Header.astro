@@ -6,7 +6,16 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 <header class="siteHeader">
   <div class="headerTop">
     <h1 class="siteTitle" style="margin:0;">
-      <a href={BASE} class="siteTitleLink">かもねぎ通信</a>
+      <a href={BASE} class="siteTitleLink">
+        <img
+          id="siteTitleIcon"
+          src={`${BASE}images/deco/negi3.jpg`}
+          alt=""
+          class="siteTitleIcon"
+          data-base={BASE}
+        />
+        <span>かもねぎ通信</span>
+      </a>
     </h1>
 
     <div class="headerControls">
@@ -51,6 +60,9 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       color: var(--ink);
       text-decoration: none;
       letter-spacing: 0.03em;
+      display: inline-block;
+      position: relative;
+      line-height: 1.2;
     }
 
     .siteTitle {
@@ -59,6 +71,19 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       line-height: 1.2;
       grid-column: 2;
       justify-self: center;
+    }
+
+    .siteTitleIcon {
+      position: absolute;
+      left: -44px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 50px;
+      width: auto;
+      max-width: 50px;
+      display: block;
+      object-fit: contain;
+      object-position: center;
     }
 
     .headerControls {
@@ -188,10 +213,18 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 
       onReady(function () {
         var header = document.querySelector(".siteHeader");
+        var titleIcon = document.getElementById("siteTitleIcon");
         var btn = document.getElementById("searchFab");
         var form = document.getElementById("headSearch");
         var input = document.getElementById("headSearchInput");
         if (!btn || !form || !input || !header) return;
+
+        if (titleIcon) {
+          var base = titleIcon.getAttribute("data-base") || "/";
+          var choices = ["negi1.jpg", "negi2.jpg", "negi3.jpg"];
+          var pick = choices[Math.floor(Math.random() * choices.length)];
+          titleIcon.setAttribute("src", base + "images/deco/" + pick);
+        }
 
         function syncPanelTop() {
           var rect = header.getBoundingClientRect();

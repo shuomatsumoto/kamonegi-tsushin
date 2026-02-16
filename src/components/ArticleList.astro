@@ -39,6 +39,7 @@ function thumbSrc(raw?: string) {
           <a class="postCard" data-category={p.data.category} href={`${BASE}posts/${p.slug}`}>
             {t ? <img class="thumb" src={t} alt="" loading="lazy" /> : null}
             <strong class="title">{p.data.title}</strong>
+            <p class="date mono">{p.data.date}</p>
             {summary ? <p class="summary">{summary}</p> : null}
             <div class="metaStack">
               {p.data.series ? <p class="seriesLine">{p.data.series}</p> : null}
@@ -127,6 +128,14 @@ function thumbSrc(raw?: string) {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .date {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--muted);
+    opacity: 0.78;
+    letter-spacing: 0.01em;
   }
 
   .seriesLine {
