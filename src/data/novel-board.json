@@ -1,0 +1,20 @@
+{
+  "title": "小説",
+  "description": "シリーズや題材ごとに、タイトルを並べます。",
+  "groups": [
+    {
+      "title": "連作",
+      "items": [
+        { "label": "「無題」", "href": "/novel/novel" },
+        { "label": "「次回タイトル」（草稿）" }
+      ]
+    },
+    {
+      "title": "短編",
+      "items": [
+        { "label": "「」" },
+        { "label": "「」" }
+      ]
+    }
+  ]
+}

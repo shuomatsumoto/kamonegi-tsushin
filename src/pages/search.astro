@@ -37,7 +37,7 @@ const rows: Row[] = [
     date: p.data.date,
     tags: safeTags(p.data.tags),
     meta: [p.data.category ?? "", p.data.series ?? ""].filter(Boolean).join(" "),
-    typeLabel: isNotePost(p.data) ? "ノート" : "記事",
+    typeLabel: isNotePost(p.data) ? "研究" : "記事",
     sortKey: `posts:${p.slug}`,
   })),
   ...translationItems.map((p) => ({
@@ -47,7 +47,7 @@ const rows: Row[] = [
     date: p.data.date,
     tags: safeTags(p.data.tags),
     meta: [p.data.originalAuthor ?? "", p.data.sourceTitle ?? ""].filter(Boolean).join(" "),
-    typeLabel: "翻訳ノート",
+    typeLabel: "翻訳",
     sortKey: `translation:${p.slug}`,
   })),
   ...novelItems.map((p) => ({
@@ -57,7 +57,7 @@ const rows: Row[] = [
     date: p.data.date,
     tags: safeTags(p.data.tags),
     meta: "",
-    typeLabel: "小説ノート",
+    typeLabel: "小説",
     sortKey: `novel:${p.slug}`,
   })),
 ].sort((a, b) => {

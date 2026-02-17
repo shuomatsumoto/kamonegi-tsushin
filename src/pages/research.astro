@@ -1,6 +1,6 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import board from "../../data/novel-board.json";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import board from "../data/research-board.json";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
@@ -21,17 +21,17 @@ function parseLabel(raw: string) {
   return { depth, text, guide };
 }
 ---
-<BaseLayout title="小説 | かもねぎ通信">
+<BaseLayout title="研究 | かもねぎ通信">
   <section class="boardPage">
     <header class="boardHead">
-      <h2 class="h2" style="margin:0;">小説</h2>
+      <h2 class="h2" style="margin:0;">研究</h2>
       <p class="small headSub">{board.description}</p>
     </header>
 
     <div class="hr"></div>
 
     <section class="boardBox" aria-label={board.title}>
-      <h3 class="boardTitle">小説の整理</h3>
+      <h3 class="boardTitle">研究ノートの整理</h3>
       <div class="groupStack">
         {board.groups?.map((group) => (
           <section class="groupBlock" aria-label={group.title}>
@@ -153,4 +153,5 @@ function parseLabel(raw: string) {
   }
 
   .itemLink:hover { text-decoration: underline; }
+
 </style>
