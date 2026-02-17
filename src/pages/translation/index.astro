@@ -1,85 +1,154 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
-import ListIndexHeader from "../../components/ListIndexHeader.astro";
+import board from "../../data/translation-board.json";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
-const posts = (await getCollection("translation", ({ data }) => !data.draft))
-  .sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
+function toHref(href?: string) {
+  if (!href) return "";
+  if (href.startsWith("http://") || href.startsWith("https://")) return href;
+  return href.startsWith("/") ? `${BASE}${href.slice(1)}` : `${BASE}${href}`;
+}
+
+function parseLabel(raw: string) {
+  const m = raw.match(/^[\t ]*/)?.[0] ?? "";
+  const spaces = m.replace(/\t/g, "  ").length;
+  const depth = Math.min(4, Math.floor(spaces / 2));
+  const text = raw.replace(/^[\t ]+/, "");
+  return { depth, text };
+}
 ---
-
 <BaseLayout title="翻訳 | かもねぎ通信">
-  <ListIndexHeader title="翻訳" countLabel={`${posts.length} posts`} />
+  <section class="boardPage">
+    <header class="boardHead">
+      <h2 class="h2" style="margin:0;">翻訳</h2>
+      <p class="small headSub">{board.description}</p>
+    </header>
 
-  <div class="hr"></div>
+    <div class="hr"></div>
 
-  {posts.length ? (
-    <ul class="simpleList">
-      {posts.map((p) => (
-        <li>
-          <a class="simpleRow" href={`${BASE}translation/${p.slug}`}>
-            <span class="rowMain">
-              <span class="rowTitle">{p.data.title}</span>
-              {p.data.summary ? <span class="rowSummary">{p.data.summary}</span> : null}
-            </span>
-            <span class="rowMeta">
-              <span class="rowDate mono">{p.data.date}</span>
-              {p.data.tags?.length ? <span class="rowTags">#{p.data.tags.join(" #")}</span> : null}
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <div class="small">翻訳記事はまだありません。</div>
-  )}
+    <section class="boardBox" aria-label={board.title}>
+      <h3 class="boardTitle">翻訳の整理</h3>
+      <div class="groupStack">
+        {board.groups?.map((group) => (
+          <section class="groupBlock" aria-label={group.title}>
+            <h4 class="groupTitle">{group.title}</h4>
+            <ul class="itemList">
+              {group.items?.map((item) => {
+                const p = parseLabel(item.label);
+                return (
+                <li class="itemEntry" data-depth={String(p.depth)} style={`--depth:${p.depth};`}>
+                  {item.href ? (
+                    <a class="itemLink" href={toHref(item.href)}>
+                      {p.text}
+                    </a>
+                  ) : (
+                    <span class="itemText">
+                      {p.text}
+                    </span>
+                  )}
+                </li>
+              )})}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </section>
+  </section>
 </BaseLayout>
 
 <style>
-  .simpleList { list-style: none; padding: 0; margin: 0; }
-  .simpleRow {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    align-items: flex-start;
-    padding: 8px 0;
-    border-bottom: 1px dotted var(--line);
-    text-decoration: none;
-    color: var(--ink);
-  }
-  .simpleRow:hover { opacity: 0.8; }
-  .rowMain {
-    min-width: 0;
+  .boardPage { width: min(100%, 940px); margin-inline: auto; display: grid; gap: 14px; }
+  .boardHead { display: grid; gap: 4px; }
+  .headSub { margin: 0; color: var(--muted); opacity: 0.8; }
+
+  .boardBox {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
     display: grid;
-    gap: 2px;
+    gap: 10px;
   }
-  .rowTitle {
-    font-size: 0.98rem;
+
+  .boardTitle {
+    margin: 0;
+    font-size: 1.02rem;
     line-height: 1.35;
-    font-weight: 400;
+    font-weight: 500;
   }
-  .rowSummary {
-    color: var(--muted);
-    opacity: 0.78;
-    font-size: 0.82rem;
+
+  .groupStack { display: grid; gap: 10px; }
+
+  .groupBlock {
+    border: 1px solid rgba(64, 54, 40, 0.2);
+    border-radius: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+    background: #fff;
+  }
+
+  .groupTitle {
+    margin: 0;
+    padding: 7px 10px;
+    font-size: 0.88rem;
+    color: #3f5235;
+    background: #f3f0e6;
+    border-bottom: 1px solid rgba(64, 54, 40, 0.14);
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+
+  .itemList {
+    margin: 0;
+    padding: 8px 10px 10px;
+    list-style: none;
+    display: grid;
+    gap: 5px;
+  }
+
+  .itemEntry {
     line-height: 1.45;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    min-width: 0;
+    position: relative;
+    padding-left: calc(var(--depth, 0) * 1rem + 0.7rem);
   }
-  .rowMeta {
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
+
+  .itemEntry::before {
+    content: "・";
+    position: absolute;
+    left: 0;
+    top: 0;
     color: var(--muted);
-    font-size: 0.78rem;
-    white-space: nowrap;
   }
-  .rowTags { opacity: 0.7; }
-  @media (max-width: 640px) {
-    .simpleRow { flex-direction: column; gap: 4px; }
-    .rowMeta { white-space: normal; }
+
+  .itemEntry[data-depth="1"]::before,
+  .itemEntry[data-depth="2"]::before,
+  .itemEntry[data-depth="3"]::before,
+  .itemEntry[data-depth="4"]::before {
+    content: "↳";
   }
+
+  .itemEntry[data-depth="1"],
+  .itemEntry[data-depth="2"],
+  .itemEntry[data-depth="3"],
+  .itemEntry[data-depth="4"] {
+    border-left: 1px solid rgba(64, 54, 40, 0.16);
+  }
+
+  .itemLink,
+  .itemText {
+    font-size: 0.9rem;
+    color: var(--ink);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    tab-size: 2;
+  }
+
+  .itemLink:hover { text-decoration: underline; }
 </style>

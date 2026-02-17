@@ -1,0 +1,20 @@
+{
+  "title": "翻訳",
+  "description": "作家・言語ごとに、タイトルをそのまま並べます。",
+  "groups": [
+    {
+      "title": "多和田葉子",
+      "items": [
+        { "label": "「Schriftstellerin Yoko Tawada」", "href": "/translation/01tawada" },
+        { "label": "「次回タイトル」（草稿）" }
+      ]
+    },
+    {
+      "title": "ロシア語短編",
+      "items": [
+        { "label": "「」" },
+        { "label": "「」" }
+      ]
+    }
+  ]
+}
