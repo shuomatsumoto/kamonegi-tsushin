@@ -1,0 +1,83 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { createHash } from "node:crypto";
+import LockGate from "../../components/LockGate.astro";
+
+export async function getStaticPaths() {
+  const items = await getCollection("novel", ({ data }) => !data.draft);
+  return items.map((item) => ({ params: { slug: item.slug }, props: { item } }));
+}
+
+const { item } = Astro.props;
+const { Content } = await item.render();
+const lockHash = item.data.lockPasscode
+  ? createHash("sha256").update(item.data.lockPasscode).digest("hex")
+  : "";
+const storageKey = `novel/${item.slug}`;
+---
+<BaseLayout title={`${item.data.title} | 小説 | かもねぎ通信`}>
+  <article class="plainArticle">
+    <div class="articleMeta">
+      <span class="small mono">{item.data.date}</span>
+      {item.data.tags?.length ? <span class="small tags">#{item.data.tags.join(" #")}</span> : null}
+    </div>
+    <h1 class="h1">{item.data.title}</h1>
+    <LockGate
+      locked={item.data.locked}
+      lockHash={lockHash}
+      storageKey={storageKey}
+    >
+      <div class="prose">
+        <Content />
+      </div>
+    </LockGate>
+  </article>
+</BaseLayout>
+
+<style>
+  .plainArticle {
+    padding: 0;
+    margin: 0;
+    padding-top: 15px;
+    max-width: 760px;
+    margin-inline: auto;
+  }
+
+  .articleMeta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: baseline;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .tags { opacity: 0.76; }
+
+  .plainArticle .h1 {
+    font-size: clamp(1.45rem, 2.7vw, 1.82rem);
+    line-height: 1.38;
+    margin: 0 0 16px;
+  }
+
+  .prose :global(p) {
+    margin: 0 0 1.05em;
+    font-size: 1rem;
+  }
+
+  .prose :global(h2) {
+    margin: 1.8em 0 0.7em;
+    font-size: 1.18rem;
+    font-weight: 500;
+  }
+
+  .prose :global(h3) {
+    margin: 1.5em 0 0.6em;
+    font-size: 1.02rem;
+    font-weight: 400;
+    color: var(--muted);
+    opacity: 0.9;
+  }
+</style>

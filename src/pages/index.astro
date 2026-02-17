@@ -7,7 +7,14 @@ import notices from "../data/notices.json";
 import schedules from "../data/schedules.json";
 import NoticeList from "../components/NoticeList.astro";
 
-const postsAll = await getCollection("posts", ({ data }) => !data.draft);
+function isNoteLike(data: { kind?: string }) {
+  return data.kind === "note";
+}
+
+const postsAll = await getCollection(
+  "posts",
+  ({ data }) => !data.draft && !isNoteLike(data)
+);
 const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 ---
 <BaseLayout title="かもねぎ通信">

@@ -57,8 +57,8 @@ const postsAll = await getCollection(
           <li>
             <a class="postRow" href={`${BASE}posts/${p.slug}`}>
               <span class="left">
-                <span class="category">{p.data.category}</span>
-                <span class="sep">｜</span>
+                {p.data.category ? <span class="category">{p.data.category}</span> : null}
+                {p.data.category ? <span class="sep">｜</span> : null}
                 <strong class="title">{p.data.title}</strong>
               </span>
 

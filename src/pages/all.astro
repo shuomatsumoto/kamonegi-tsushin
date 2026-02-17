@@ -6,7 +6,17 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
-const postsAll = await getCollection("posts", ({ data }) => !data.draft);
+function isNoteLike(data: { kind?: string }) {
+  return data.kind === "note";
+}
+
+const postsAll = await getCollection(
+  "posts",
+  ({ data }) => {
+    if (data.draft) return false;
+    return !isNoteLike(data);
+  }
+);
 
 // 最新順：date 降順 → 同日内は slug で安定化
 const posts = [...postsAll].sort((a, b) => {
@@ -14,7 +24,9 @@ const posts = [...postsAll].sort((a, b) => {
   return a.slug < b.slug ? 1 : -1;
 });
 
-const categories = Array.from(new Set(posts.map((p) => p.data.category)))
+const categories = Array.from(
+  new Set(posts.map((p) => (p.data.category ?? "").trim()).filter(Boolean))
+)
   .sort((a, b) => a.localeCompare(b, "ja"));
 
 function safeTags(tags: unknown): string[] {
@@ -34,7 +46,7 @@ const data = posts.map((p) => ({
   summary: p.data.summary ?? "",
   date: p.data.date,
   series: p.data.series ?? "",
-  category: p.data.category,
+  category: (p.data.category ?? "").trim(),
   thumb: thumbSrc(p.data.thumbnail),
   tags: safeTags(p.data.tags),
 }));
@@ -48,6 +60,13 @@ const data = posts.map((p) => ({
         <div class="small count"><span id="count">{data.length} 件</span></div>
       </div>
     </header>
+
+    <nav class="indexLinks" aria-label="一覧ページ">
+      <a href={`${BASE}notes`} class="indexLink">ノート</a>
+      <a href={`${BASE}category`} class="indexLink">カテゴリ</a>
+      <a href={`${BASE}series`} class="indexLink">連載</a>
+      <a href={`${BASE}tags`} class="indexLink">タグ</a>
+    </nav>
 
     <div class="tools" aria-label="絞り込みと並び替え">
       <select id="cat" class="sel" aria-label="カテゴリで絞り込み">
@@ -83,7 +102,7 @@ const data = posts.map((p) => ({
               <div class="metaStack">
                 {it.series ? <p class="seriesLine">{it.series}</p> : null}
                 <p class="metaInfo">
-                  <span class="category">{it.category}</span>
+                  {it.category ? <span class="category">{it.category}</span> : null}
                   {it.tags.length ? <span class="tags">#{it.tags.join(" #")}</span> : null}
                 </p>
               </div>
@@ -186,6 +205,25 @@ const data = posts.map((p) => ({
       flex-wrap: wrap;
       padding-bottom: 10px;
       border-bottom: 1px dotted var(--line);
+    }
+
+    .indexLinks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      margin-top: -2px;
+    }
+
+    .indexLink {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.2;
+      padding: 2px 0;
+    }
+
+    .indexLink:hover {
+      opacity: 0.78;
     }
 
     .qHint {

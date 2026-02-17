@@ -5,19 +5,16 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 
 const topItems = [
   { href: `${BASE}`, label: "ホーム", icon: "☀️" },
-  { href: `${BASE}all`, label: "記事一覧", icon: "🗂" },
-  { href: `${BASE}category`, label: "カテゴリ一覧", icon: "📚" },
-  { href: `${BASE}series`, label: "連載一覧", icon: "📘" },
-  { href: `${BASE}tags`, label: "タグ一覧", icon: "#" },
+  { href: `${BASE}all`, label: "記事", icon: "🗂" },
+  { href: `${BASE}notes`, label: "ノート" },
 ];
 ---
 <nav id="sunMenu" class="sunMenu" data-open="false" aria-label="site navigation">
   <div class="sunInner">
-    {topItems.map((it, idx) => (
+    {topItems.map((it) => (
       <>
-        {idx === 2 ? <span class="sunSep" aria-hidden="true">｜</span> : null}
         <a href={it.href} class="sunLink">
-          <span class="sunIcon" aria-hidden="true">{it.icon}</span>
+          {it.icon ? <span class="sunIcon" aria-hidden="true">{it.icon}</span> : null}
           <span class="sunLabel">{it.label}</span>
         </a>
       </>
@@ -77,12 +74,6 @@ const topItems = [
     font-size: 0.88rem;
   }
 
-  .sunSep {
-    color: var(--muted);
-    opacity: 0.6;
-    font-size: 0.82rem;
-    line-height: 1;
-  }
 </style>
 
 <script is:inline>
