@@ -1,0 +1,157 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import board from "../data/notes-board.json";
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
+function toHref(href?: string) {
+  if (!href) return "";
+  if (href.startsWith("http://") || href.startsWith("https://")) return href;
+  return href.startsWith("/") ? `${BASE}${href.slice(1)}` : `${BASE}${href}`;
+}
+---
+<BaseLayout title="ノート | かもねぎ通信">
+  <section class="notesPage">
+    <header class="notesHead">
+      <h2 class="h2" style="margin:0;">ノート</h2>
+      <p class="small headSub">大きな枠の中で、分類と項目を自由に整理できます。</p>
+    </header>
+
+    <div class="hr"></div>
+
+    <div class="boardStack">
+      {board.map((panel) => (
+        <section class="noteBoard" aria-label={panel.title}>
+          <h3 class="boardTitle">{panel.title}</h3>
+          {panel.description ? <p class="boardDesc">{panel.description}</p> : null}
+
+          <div class="groupStack">
+            {panel.groups?.map((group) => (
+              <section class="groupBlock" aria-label={group.title}>
+                <h4 class="groupTitle">{group.title}</h4>
+                <ul class="itemList">
+                  {group.items?.map((item) => (
+                    <li>
+                      {item.href ? (
+                        <a class="itemLink" href={toHref(item.href)}>{item.label}</a>
+                      ) : (
+                        <span class="itemText">{item.label}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notesPage {
+    width: min(100%, 940px);
+    margin-inline: auto;
+    display: grid;
+    gap: 14px;
+  }
+
+  .notesHead {
+    display: grid;
+    gap: 4px;
+  }
+
+  .headSub {
+    margin: 0;
+    color: var(--muted);
+    opacity: 0.8;
+  }
+
+  .boardStack {
+    display: grid;
+    gap: 14px;
+  }
+
+  .noteBoard {
+    border: 1px solid rgba(64, 54, 40, 0.38);
+    border-radius: 0;
+    background: #fff;
+    padding: 14px 16px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .boardTitle {
+    margin: 0;
+    font-size: 1.06rem;
+    line-height: 1.35;
+    font-weight: 500;
+  }
+
+  .boardDesc {
+    margin: 0;
+    color: var(--muted);
+    opacity: 0.85;
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
+  .groupStack {
+    display: grid;
+    gap: 10px;
+  }
+
+  .groupBlock {
+    border: 1px solid rgba(64, 54, 40, 0.2);
+    border-radius: 0;
+    padding: 9px 10px;
+    display: grid;
+    gap: 6px;
+    background: #fffefb;
+  }
+
+  .groupTitle {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #4d5f42;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+
+  .itemList {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+
+  .itemList li {
+    position: relative;
+    padding-left: 0.9em;
+    line-height: 1.45;
+  }
+
+  .itemList li::before {
+    content: "・";
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  .itemLink,
+  .itemText {
+    font-size: 0.9rem;
+    color: var(--ink);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .itemLink:hover {
+    text-decoration: underline;
+  }
+</style>

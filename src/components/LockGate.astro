@@ -1,0 +1,171 @@
+---
+type Props = {
+  locked?: boolean;
+  lockHash?: string;
+  storageKey: string;
+};
+
+const {
+  locked = false,
+  lockHash = "",
+  storageKey,
+} = Astro.props as Props;
+---
+{locked ? (
+  <section
+    class="lockGate"
+    data-storage-key={storageKey}
+    data-lock-hash={lockHash}
+    aria-label="ロックされた記事"
+  >
+    <h2 class="lockTitle">このページはロックされています</h2>
+    {lockHash ? (
+      <form class="lockForm" novalidate>
+        <label class="lockLabel" for={`lock-input-${storageKey}`}>パスワード</label>
+        <input
+          id={`lock-input-${storageKey}`}
+          class="lockInput"
+          type="password"
+          autocomplete="off"
+          required
+        />
+        <button class="lockButton" type="submit">開く</button>
+        <p class="lockError" aria-live="polite"></p>
+      </form>
+    ) : (
+      <p class="lockError">パスワードが未設定です。frontmatter を確認してください。</p>
+    )}
+  </section>
+) : null}
+
+<div class:list={["lockContent", locked && "isLocked"]} data-storage-key={storageKey}>
+  <slot />
+</div>
+
+<style>
+  .lockGate {
+    margin: 10px 0 18px;
+    padding: 14px;
+    border: 1px solid rgba(64, 54, 40, 0.3);
+    background: #faf8f3;
+    display: grid;
+    gap: 8px;
+  }
+
+  .lockTitle {
+    margin: 0;
+    font-size: 0.96rem;
+    line-height: 1.35;
+    font-weight: 500;
+  }
+
+  .lockForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .lockLabel {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .lockInput {
+    width: min(280px, 100%);
+    height: 34px;
+    border: 1px solid rgba(64, 54, 40, 0.26);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.88rem;
+    padding: 0 10px;
+  }
+
+  .lockButton {
+    height: 34px;
+    border: 1px solid rgba(64, 54, 40, 0.26);
+    background: #fff;
+    color: var(--ink);
+    font-size: 0.84rem;
+    padding: 0 12px;
+  }
+
+  .lockButton:hover {
+    background: #f5f2ea;
+  }
+
+  .lockError {
+    margin: 0;
+    min-height: 1.2em;
+    width: 100%;
+    color: #8a3f30;
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  .lockContent.isLocked {
+    display: none;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var gates = Array.from(document.querySelectorAll(".lockGate[data-storage-key]"));
+    if (!gates.length) return;
+
+    function toHex(buffer) {
+      return Array.from(new Uint8Array(buffer)).map(function (b) {
+        return b.toString(16).padStart(2, "0");
+      }).join("");
+    }
+
+    function sha256(text) {
+      var enc = new TextEncoder().encode(text);
+      return crypto.subtle.digest("SHA-256", enc).then(toHex);
+    }
+
+    function unlock(storageKey) {
+      var content = document.querySelector('.lockContent[data-storage-key="' + storageKey + '"]');
+      if (content) content.classList.remove("isLocked");
+      var gate = document.querySelector('.lockGate[data-storage-key="' + storageKey + '"]');
+      if (gate) gate.remove();
+    }
+
+    gates.forEach(function (gate) {
+      var storageKey = gate.getAttribute("data-storage-key");
+      var lockHash = (gate.getAttribute("data-lock-hash") || "").toLowerCase();
+      if (!storageKey || !lockHash) return;
+
+      var saved = "";
+      try { saved = sessionStorage.getItem("unlock:" + storageKey) || ""; } catch (_) {}
+      if (saved && saved === lockHash) {
+        unlock(storageKey);
+        return;
+      }
+
+      var form = gate.querySelector(".lockForm");
+      var input = gate.querySelector(".lockInput");
+      var error = gate.querySelector(".lockError");
+      if (!form || !input || !error) return;
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var value = (input.value || "").trim();
+        if (!value) {
+          error.textContent = "パスワードを入力してください。";
+          input.focus();
+          return;
+        }
+        sha256(value).then(function (hashed) {
+          if (hashed.toLowerCase() === lockHash) {
+            try { sessionStorage.setItem("unlock:" + storageKey, lockHash); } catch (_) {}
+            unlock(storageKey);
+            return;
+          }
+          error.textContent = "パスワードが違います。";
+        });
+      });
+    });
+  })();
+</script>

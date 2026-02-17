@@ -44,7 +44,7 @@ function thumbSrc(raw?: string) {
             <div class="metaStack">
               {p.data.series ? <p class="seriesLine">{p.data.series}</p> : null}
               <div class="postMeta">
-                <span class="category">{p.data.category}</span>
+                {p.data.category ? <span class="category">{p.data.category}</span> : null}
                 {tags.length ? <span class="tags">#{tags.join(" #")}</span> : null}
               </div>
             </div>

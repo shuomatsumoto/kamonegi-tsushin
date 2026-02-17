@@ -11,7 +11,8 @@ const posts = await getCollection("posts", ({ data }) => !data.draft);
 
 const map = new Map<string, number>();
 for (const p of posts) {
-  const c = p.data.category;
+  const c = p.data.category?.trim();
+  if (!c) continue;
   map.set(c, (map.get(c) ?? 0) + 1);
 }
 

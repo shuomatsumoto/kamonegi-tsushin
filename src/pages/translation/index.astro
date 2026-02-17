@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import ListIndexHeader from "../../components/ListIndexHeader.astro";
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
+const posts = (await getCollection("translation", ({ data }) => !data.draft))
+  .sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
+---
+
+<BaseLayout title="翻訳 | かもねぎ通信">
+  <ListIndexHeader title="翻訳" countLabel={`${posts.length} posts`} />
+
+  <div class="hr"></div>
+
+  {posts.length ? (
+    <ul class="simpleList">
+      {posts.map((p) => (
+        <li>
+          <a class="simpleRow" href={`${BASE}translation/${p.slug}`}>
+            <span class="rowMain">
+              <span class="rowTitle">{p.data.title}</span>
+              {p.data.summary ? <span class="rowSummary">{p.data.summary}</span> : null}
+            </span>
+            <span class="rowMeta">
+              <span class="rowDate mono">{p.data.date}</span>
+              {p.data.tags?.length ? <span class="rowTags">#{p.data.tags.join(" #")}</span> : null}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <div class="small">翻訳記事はまだありません。</div>
+  )}
+</BaseLayout>
+
+<style>
+  .simpleList { list-style: none; padding: 0; margin: 0; }
+  .simpleRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px dotted var(--line);
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .simpleRow:hover { opacity: 0.8; }
+  .rowMain {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .rowTitle {
+    font-size: 0.98rem;
+    line-height: 1.35;
+    font-weight: 400;
+  }
+  .rowSummary {
+    color: var(--muted);
+    opacity: 0.78;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .rowMeta {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    color: var(--muted);
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .rowTags { opacity: 0.7; }
+  @media (max-width: 640px) {
+    .simpleRow { flex-direction: column; gap: 4px; }
+    .rowMeta { white-space: normal; }
+  }
+</style>

@@ -1,9 +1,13 @@
 ---
 title: " "
 date: "2026-00-00"
+kind: "article"
 category: " "
 tags: [""]
 thumbnail: "/images/thumbs/"
 summary: " "
+supportUrl:
 draft: true
+locked: false
+# lockPasscode: "your-passphrase"
 ---
