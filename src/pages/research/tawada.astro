@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+<BaseLayout title="多和田葉子 研究ノート | かもねぎ通信">
+  <section class="notePage">
+    <header class="noteHead">
+      <h2 class="h2" style="margin:0;">多和田葉子 研究ノート</h2>
+      <p class="small noteSub">翻訳・インタビュー読解に関するメモと草稿。</p>
+    </header>
+
+    <div class="hr"></div>
+
+    <section class="noteBox">
+      <h3 class="noteTitle">ノート</h3>
+      <ul class="noteList">
+        <li>論点 1（草稿）</li>
+        <li>論点 2（草稿）</li>
+      </ul>
+    </section>
+  </section>
+</BaseLayout>
+
+<style>
+  .notePage {
+    width: min(100%, 940px);
+    margin-inline: auto;
+    display: grid;
+    gap: 14px;
+  }
+
+  .noteHead {
+    display: grid;
+    gap: 4px;
+  }
+
+  .noteSub {
+    margin: 0;
+    color: var(--muted);
+    opacity: 0.85;
+  }
+
+  .noteBox {
+    border: 1px solid rgba(64, 54, 40, 0.2);
+    background: #fff;
+    padding: 10px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .noteTitle {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #3f5235;
+    font-weight: 600;
+  }
+
+  .noteList {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 4px;
+    line-height: 1.5;
+  }
+</style>

@@ -62,8 +62,7 @@ const data = posts.map((p) => ({
     </header>
 
     <nav class="indexLinks" aria-label="一覧ページ">
-      <a href={`${BASE}research`} class="indexLink">研究</a>
-      <a href={`${BASE}translation`} class="indexLink">翻訳</a>
+      <a href={`${BASE}translation`} class="indexLink">研究・翻訳</a>
       <a href={`${BASE}novel`} class="indexLink">小説</a>
       <a href={`${BASE}category`} class="indexLink">カテゴリ</a>
       <a href={`${BASE}series`} class="indexLink">連載</a>
@@ -96,13 +95,13 @@ const data = posts.map((p) => ({
           data-slug={it.slug}
         >
           <a class="postCard" data-category={it.category} href={`${BASE}posts/${it.slug}`}>
-            {it.thumb ? <img class="thumb" src={it.thumb} alt="" loading="lazy" /> : null}
+            {it.thumb ? <img class="thumb post-thumb-wide" src={it.thumb} alt="" loading="lazy" /> : null}
             <div class="cardBody">
-              <strong class="title">{it.title}</strong>
+              <strong class="title post-title-2line">{it.title}</strong>
               <p class="date mono">{it.date}</p>
-              {it.summary ? <p class="summary">{it.summary}</p> : null}
+              {it.summary ? <p class="summary post-summary-3line">{it.summary}</p> : null}
               <div class="metaStack">
-                {it.series ? <p class="seriesLine">{it.series}</p> : null}
+                {it.series ? <p class="seriesLine post-series-accent">〈{it.series}〉</p> : null}
                 <p class="metaInfo">
                   {it.category ? <span class="category">{it.category}</span> : null}
                   {it.tags.length ? <span class="tags">#{it.tags.join(" #")}</span> : null}
@@ -282,10 +281,6 @@ const data = posts.map((p) => ({
     }
 
     .thumb {
-      display: block;
-      width: 100%;
-      aspect-ratio: 8 / 5;
-      object-fit: cover;
       border-bottom: 1px solid rgba(64, 54, 40, 0.12);
     }
 
@@ -317,10 +312,6 @@ const data = posts.map((p) => ({
       line-height: 1.34;
       color: var(--ink);
       font-weight: 400;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
     .summary {
@@ -329,18 +320,12 @@ const data = posts.map((p) => ({
       line-height: 1.5;
       color: var(--muted);
       opacity: 0.74;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
     .seriesLine {
       margin: 0;
       font-size: var(--fs-list-summary);
       line-height: 1.2;
-      color: #4d5f42;
-      font-weight: 700;
     }
 
     .metaStack {

@@ -17,8 +17,30 @@ function parseLabel(raw: string) {
   const spaces = m.replace(/\t/g, "  ").length;
   const depth = Math.min(4, Math.floor(spaces / 2));
   const text = raw.replace(/^[\t ]+/, "");
-  const guide = depth > 0 ? `${"· ".repeat(depth)}↳ ` : "";
-  return { depth, text, guide };
+  return { depth, text };
+}
+
+type BoardItem = { label: string; href?: string };
+
+function hasNextAtDepth(items: BoardItem[], index: number, depth: number) {
+  for (let i = index + 1; i < items.length; i += 1) {
+    const nextDepth = parseLabel(items[i].label).depth;
+    if (nextDepth < depth) return false;
+    if (nextDepth === depth) return true;
+  }
+  return false;
+}
+
+function treePrefix(items: BoardItem[], index: number) {
+  const { depth } = parseLabel(items[index].label);
+  if (depth <= 0) return "";
+
+  let prefix = "";
+  for (let level = 1; level < depth; level += 1) {
+    prefix += hasNextAtDepth(items, index, level) ? "│  " : "   ";
+  }
+  prefix += hasNextAtDepth(items, index, depth) ? "├ " : "└ ";
+  return prefix;
 }
 ---
 <BaseLayout title="研究 | かもねぎ通信">
@@ -37,18 +59,19 @@ function parseLabel(raw: string) {
           <section class="groupBlock" aria-label={group.title}>
             <h4 class="groupTitle">{group.title}</h4>
             <ul class="itemList">
-              {group.items?.map((item) => {
+              {group.items?.map((item, idx, arr) => {
                 const p = parseLabel(item.label);
+                const prefix = treePrefix(arr, idx);
                 return (
-                <li class="itemEntry" data-depth={String(p.depth)}>
+                <li class="itemEntry">
                   {item.href ? (
                     <a class="itemLink" href={toHref(item.href)}>
-                      {p.guide ? <span class="itemGuide" aria-hidden="true">{p.guide}</span> : null}
+                      {prefix && <span class="treePrefix">{prefix}</span>}
                       {p.text}
                     </a>
                   ) : (
                     <span class="itemText">
-                      {p.guide ? <span class="itemGuide" aria-hidden="true">{p.guide}</span> : null}
+                      {prefix && <span class="treePrefix">{prefix}</span>}
                       {p.text}
                     </span>
                   )}
@@ -88,16 +111,17 @@ function parseLabel(raw: string) {
   .groupBlock {
     border: 1px solid rgba(64, 54, 40, 0.2);
     border-radius: 0;
-    padding: 9px 10px;
+    padding: 0;
     display: grid;
-    gap: 6px;
-    background: #fffefb;
+    gap: 0;
+    background: #fff;
   }
 
   .groupTitle {
     margin: 0;
+    padding: 8px 10px 1px;
     font-size: 0.88rem;
-    color: #4d5f42;
+    color: #3f5235;
     line-height: 1.35;
     letter-spacing: 0.02em;
     font-weight: 600;
@@ -105,36 +129,15 @@ function parseLabel(raw: string) {
 
   .itemList {
     margin: 0;
-    padding: 0;
+    padding: 3px 10px 10px;
     list-style: none;
     display: grid;
-    gap: 4px;
+    gap: 0;
   }
 
   .itemEntry {
-    line-height: 1.45;
+    line-height: 1.28;
     min-width: 0;
-    padding-left: 0;
-  }
-
-  .itemEntry[data-depth="1"] {
-    padding-left: 0.9rem;
-    border-left: 1px solid rgba(64, 54, 40, 0.18);
-  }
-
-  .itemEntry[data-depth="2"] {
-    padding-left: 1.8rem;
-    border-left: 1px solid rgba(64, 54, 40, 0.18);
-  }
-
-  .itemEntry[data-depth="3"] {
-    padding-left: 2.7rem;
-    border-left: 1px solid rgba(64, 54, 40, 0.18);
-  }
-
-  .itemEntry[data-depth="4"] {
-    padding-left: 3.6rem;
-    border-left: 1px solid rgba(64, 54, 40, 0.18);
   }
 
   .itemLink,
@@ -147,9 +150,13 @@ function parseLabel(raw: string) {
     tab-size: 2;
   }
 
-  .itemGuide {
-    color: var(--muted);
-    opacity: 0.75;
+  .treePrefix {
+    display: inline-block;
+    white-space: pre;
+    letter-spacing: 0;
+    line-height: 1.28;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: rgba(64, 54, 40, 0.56);
   }
 
   .itemLink:hover { text-decoration: underline; }

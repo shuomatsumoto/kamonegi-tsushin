@@ -9,9 +9,44 @@ const { notices, limit, title = "お知らせ" } = Astro.props as {
   notices: Notice[];
   limit?: number;
   title?: string;
+  recentDays?: number;
 };
 
-const shown = typeof limit === "number" ? notices.slice(0, limit) : notices;
+const recentDays =
+  typeof Astro.props.recentDays === "number" ? Astro.props.recentDays : undefined;
+
+function tokyoTodayYMD() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+  const m = parts.find((p) => p.type === "month")?.value ?? "01";
+  const d = parts.find((p) => p.type === "day")?.value ?? "01";
+  return `${y}-${m}-${d}`;
+}
+
+function toDayNumber(ymd: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+  const [y, m, d] = ymd.split("-").map(Number);
+  return Math.floor(Date.UTC(y, m - 1, d) / 86400000);
+}
+
+const todayDay = toDayNumber(tokyoTodayYMD());
+const filteredByRecent =
+  typeof recentDays === "number" && todayDay !== null
+    ? notices.filter((n) => {
+        const dateLabel = (n.date ?? "").trim();
+        const nDay = toDayNumber(dateLabel);
+        if (nDay === null) return false;
+        const diff = todayDay - nDay;
+        return diff >= 0 && diff < recentDays;
+      })
+    : notices;
+
+const shown = typeof limit === "number" ? filteredByRecent.slice(0, limit) : filteredByRecent;
 const grouped = shown.reduce((acc, n) => {
   const dateLabel = (n.date ?? "").trim() || "（未定）";
   const last = acc[acc.length - 1];
@@ -88,7 +123,7 @@ const grouped = shown.reduce((acc, n) => {
     padding: 0;
     display: grid;
     gap: 2px;
-    font-size: 0.9em;
+    font-size: 0.82em;
     font-weight: 400;
     opacity: 0.96;
     line-height: 1.45;

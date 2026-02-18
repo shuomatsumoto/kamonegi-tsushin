@@ -1,19 +1,48 @@
 {
-  "title": "翻訳",
-  "description": "作家・言語ごとに、タイトルをそのまま並べます。",
+  "title": "翻訳・研究",
+  "sectionTitle": "",
+  "description": "作家ごとに、翻訳と研究を同じページで整理します。",
   "groups": [
     {
       "title": "多和田葉子",
-      "items": [
-        { "label": "「Schriftstellerin Yoko Tawada」", "href": "/translation/01tawada" },
-        { "label": "「次回タイトル」（草稿）" }
+      "sections": [
+        {
+          "title": "翻訳",
+          "items": [
+            { "label": "  小説" },
+            { "label": "    Schriftstellerin Yoko Tawada", "href": "/translation/01tawada" },
+            { "label": "    次回タイトル（草稿）" },
+            { "label": "  インタビュー" },
+            { "label": "    インタビュー題名（草稿）" }
+          ]
+        },
+        {
+          "title": "研究",
+          "items": [
+            { "label": "  多和田葉子ノート（草稿）", "href": "/research/tawada" }
+          ]
+        }
       ]
     },
     {
       "title": "ロシア語短編",
-      "items": [
-        { "label": "「」" },
-        { "label": "「」" }
+      "sections": [
+        {
+          "title": "翻訳",
+          "items": [
+            { "label": "  ソ連期" },
+            { "label": "    「」" },
+            { "label": "    「」" },
+            { "label": "  現代" },
+            { "label": "    「」" }
+          ]
+        },
+        {
+          "title": "研究",
+          "items": [
+            { "label": "  研究ノート（草稿）" }
+          ]
+        }
       ]
     }
   ]

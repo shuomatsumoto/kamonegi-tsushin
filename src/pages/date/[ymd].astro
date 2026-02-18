@@ -2,6 +2,8 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 import { toYMD } from "../../components/category";
+import news from "../../data/news.json";
+import memorials from "../../data/memorials.json";
 
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
@@ -11,29 +13,31 @@ export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
   const postDates = posts.map((p) => p.data.date);
 
-  // Build month set from existing content plus current month,
-  // then generate every day in those months so "empty days" are routable.
-  const monthSet = new Set<string>();
-  for (const d of postDates) {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) monthSet.add(d.slice(0, 7));
+  const now = new Date();
+  const dates = new Set<string>();
+
+  // Past/Future navigation support range
+  const startYear = now.getFullYear() - 10;
+  const endYear = now.getFullYear() + 10;
+
+  const cursor = new Date(startYear, 0, 1);
+  const end = new Date(endYear, 11, 31);
+  while (cursor <= end) {
+    const y = cursor.getFullYear();
+    const m = String(cursor.getMonth() + 1).padStart(2, "0");
+    const d = String(cursor.getDate()).padStart(2, "0");
+    dates.add(`${y}-${m}-${d}`);
+    cursor.setDate(cursor.getDate() + 1);
   }
 
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  monthSet.add(currentMonth);
-
-  const dates: string[] = [];
-  for (const ym of monthSet) {
-    const y = Number(ym.slice(0, 4));
-    const m = Number(ym.slice(5, 7));
-    if (!Number.isFinite(y) || !Number.isFinite(m)) continue;
-    const lastDay = new Date(y, m, 0).getDate();
-    for (let day = 1; day <= lastDay; day++) {
-      dates.push(`${ym}-${String(day).padStart(2, "0")}`);
+  // Keep any out-of-range content dates routable too.
+  for (const d of postDates) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      dates.add(d);
     }
   }
 
-  return dates.sort().map((ymd) => ({ params: { ymd } }));
+  return Array.from(dates).sort().map((ymd) => ({ params: { ymd } }));
 }
 
 const { ymd } = Astro.params as { ymd: string };
@@ -43,6 +47,10 @@ const postsAll = await getCollection(
   "posts",
   ({ data }) => !data.draft && data.date === ymd
 );
+
+const newsItems = news.filter((n) => (n.date ?? "").trim() === ymd);
+const mmdd = ymd.slice(5, 10);
+const memorialItems = memorials.filter((m) => m.date === ymd || m.date === mmdd);
 ---
 <BaseLayout title={`${ymd} | かもねぎ通信`}>
   <section class="plainSection">
@@ -75,8 +83,44 @@ const postsAll = await getCollection(
 
     </ul>
 
-    {!postsAll.length && (
+    {!postsAll.length && !newsItems.length && !memorialItems.length && (
       <div class="small">この日には記事がありません。</div>
+    )}
+
+    {(newsItems.length > 0 || memorialItems.length > 0) && (
+      <div class="metaBlock">
+        {memorialItems.length > 0 && (
+          <section class="metaSection isMemorial">
+            <h3>記念日</h3>
+            <ul class="metaList">
+              {memorialItems.map((m) => (
+                <li>
+                  <span aria-hidden="true">・</span>
+                  <span>{m.title}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {newsItems.length > 0 && (
+          <section class="metaSection">
+            <h3>ニュース</h3>
+            <ul class="metaList">
+              {newsItems.map((n) => (
+                <li>
+                  <span aria-hidden="true">・</span>
+                  {n.href ? (
+                    <a href={n.href}>{n.title}</a>
+                  ) : (
+                    <span>{n.title}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
     )}
   </section>
 
@@ -137,6 +181,58 @@ const postsAll = await getCollection(
 
     .tags {
       color: var(--muted);
+    }
+
+    .metaBlock {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .metaSection h3 {
+      margin: 0 0 6px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .metaSection {
+      border: 1px solid rgba(64, 54, 40, 0.14);
+      border-radius: 0;
+      background: #fff;
+      padding: 10px 12px;
+    }
+
+    .metaSection.isMemorial {
+      border-color: rgba(244, 167, 185, 0.7);
+      background: rgba(244, 167, 185, 0.08);
+    }
+
+    .metaSection.isMemorial h3,
+    .metaSection.isMemorial .metaList {
+      color: #c57a92;
+    }
+
+    .metaList {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 2px;
+      color: var(--muted);
+      font-size: 0.9em;
+    }
+
+    .metaList li {
+      display: flex;
+      gap: 0.15em;
+      align-items: baseline;
+    }
+
+    .metaList a {
+      color: inherit;
+      text-decoration: none;
     }
 
     @media (max-width: 640px) {
