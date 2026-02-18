@@ -1,8 +1,14 @@
 ---
 import type { CollectionEntry } from "astro:content";
 
+type Memorial = {
+  date: string; // YYYY-MM-DD or MM-DD
+  title: string;
+};
+
 const { posts, year, month } = Astro.props as {
   posts: CollectionEntry<"posts">[];
+  memorials?: Memorial[];
   year?: number;
   month?: number; // 1-12
 };
@@ -10,6 +16,7 @@ const { posts, year, month } = Astro.props as {
 const now = new Date();
 const Y = year ?? now.getFullYear();
 const M = month ?? (now.getMonth() + 1);
+const memorials = Astro.props.memorials ?? [];
 
 
 const first = new Date(Y, M - 1, 1);
@@ -18,13 +25,14 @@ const startDow = first.getDay();
 const daysInMonth = last.getDate();
 
 const monthPrefix = `${Y}-${String(M).padStart(2, "0")}-`;
-
-const postCountByDate = posts.reduce((acc, p) => {
+const postCountByDateAll = posts.reduce((acc, p) => {
   const d = p.data.date;
-  if (!d.startsWith(monthPrefix)) return acc;
   acc.set(d, (acc.get(d) ?? 0) + 1);
   return acc;
 }, new Map<string, number>());
+const postCountByDate = new Map(
+  Array.from(postCountByDateAll.entries()).filter(([d]) => d.startsWith(monthPrefix))
+);
 
 const weeks: Array<Array<number | null>> = [];
 let w: Array<number | null> = [];
@@ -50,11 +58,25 @@ function ymd(day: number) {
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
+const postCountEntries = Array.from(postCountByDateAll.entries());
+const memorialEntries = memorials;
 
 ---
 <section class="plainSection">
   <div class="sectionHead">
-    <h2 id="calMonthLabel">{monthLabelInitial}</h2>
+    <div class="monthNav" aria-label="月移動">
+      <button type="button" class="calNavBtn" id="calPrev" aria-label="前の月">‹</button>
+      <label class="calSelectWrap">
+        <select id="calYearSelect" class="calSelect" aria-label="年を選択"></select>
+        <span class="calSuffix">年</span>
+      </label>
+      <label class="calSelectWrap">
+        <select id="calMonthSelect" class="calSelect" aria-label="月を選択"></select>
+        <span class="calSuffix">月</span>
+      </label>
+      <button type="button" class="calNavBtn" id="calNext" aria-label="次の月">›</button>
+      <button type="button" id="calToday" class="calTodayBtn">今月に戻る</button>
+    </div>
     <div class="small mono">calendar</div>
   </div>
 
@@ -70,16 +92,30 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
 
       const key = ymd(day);
       const postCount = postCountByDate.get(key) ?? 0;
+      const mmdd = key.slice(5, 10);
+      const memorialCount = memorials.filter((m) => m.date === key || m.date === mmdd).length;
       const hasPost = postCount > 0;
+      const hasMemorial = memorialCount > 0;
 
       return (
         <a href={`${BASE}date/${key}`} class="calLink">
           <div
-            class="calCell"
+            class={`calCell${hasMemorial ? " hasMemorial" : ""}`}
             data-ymd={key}
-            title={hasPost ? "記事あり" : ""}
+            title={
+              hasPost && hasMemorial
+                ? `${postCount}件の記事 / ${memorialCount}件の記念日`
+                : hasPost
+                  ? `${postCount}件の記事`
+                  : hasMemorial
+                    ? `${memorialCount}件の記念日`
+                    : ""
+            }
           >
             <span class="calNum mono">{day}</span>
+            {hasMemorial && (
+              <span aria-hidden="true" class="memorialMark">＊</span>
+            )}
             {/* 記事数 */}
             {hasPost && (
               <span aria-hidden="true" class="mark">
@@ -92,8 +128,37 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
     })}
   </div>
 
-  <script is:inline>
+  <script is:inline define:vars={{ Y, M, BASE, postCountEntries, memorialEntries }}>
     (function () {
+      var grid = document.getElementById("calGrid");
+      var prevBtn = document.getElementById("calPrev");
+      var nextBtn = document.getElementById("calNext");
+      var todayBtn = document.getElementById("calToday");
+      var yearSelect = document.getElementById("calYearSelect");
+      var monthSelect = document.getElementById("calMonthSelect");
+      if (
+        !grid ||
+        !prevBtn ||
+        !nextBtn ||
+        !todayBtn ||
+        !yearSelect ||
+        !monthSelect
+      ) return;
+
+      var dow = ["日", "月", "火", "水", "木", "金", "土"];
+      var postCountByDate = new Map(postCountEntries);
+      var memorialExact = new Map();
+      var memorialRecurring = new Map();
+      var today = tokyoTodayYMD();
+      var todayYear = Number(today.slice(0, 4));
+      var todayMonth = Number(today.slice(5, 7));
+      var MIN_YEAR = 2026;
+      var MIN_MONTH = 2;
+      var MAX_YEAR = Math.max(todayYear + 10, MIN_YEAR);
+      var clampedInitial = clampMin(Number(Y), Number(M));
+      var stateYear = clampedInitial[0];
+      var stateMonth = clampedInitial[1];
+
       function tokyoTodayYMD() {
         // en-CA => YYYY-MM-DD
         var fmt = new Intl.DateTimeFormat("en-CA", {
@@ -105,33 +170,208 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
         return fmt.format(new Date());
       }
 
+      for (var mi = 0; mi < memorialEntries.length; mi += 1) {
+        var memorial = memorialEntries[mi];
+        if (!memorial || !memorial.date) continue;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(memorial.date)) {
+          memorialExact.set(memorial.date, (memorialExact.get(memorial.date) || 0) + 1);
+        } else if (/^\d{2}-\d{2}$/.test(memorial.date)) {
+          memorialRecurring.set(memorial.date, (memorialRecurring.get(memorial.date) || 0) + 1);
+        }
+      }
+
+      function memorialCountFor(key) {
+        var mmdd = key.slice(5, 10);
+        return Number(memorialExact.get(key) || 0) + Number(memorialRecurring.get(mmdd) || 0);
+      }
+
       function applyTodayStamp() {
-        var grid = document.getElementById("calGrid");
-        if (!grid) return false;
-
-        var today = tokyoTodayYMD();
-
         var cell = grid.querySelector('[data-ymd="' + today + '"]');
         if (!cell) return false;
-
         cell.classList.add("isToday");
         return true;
       }
 
-      // DOM timing differences: retry a bit
-      var tries = 0;
-      function retry() {
-        if (applyTodayStamp()) return;
-        tries += 1;
-        if (tries >= 30) return;
-        setTimeout(retry, 50);
+      function isBeforeMin(year, month) {
+        return year < MIN_YEAR || (year === MIN_YEAR && month < MIN_MONTH);
       }
 
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", retry, { once: true });
-      } else {
-        retry();
+      function clampMin(year, month) {
+        if (isBeforeMin(year, month)) return [MIN_YEAR, MIN_MONTH];
+        return [year, month];
       }
+
+      function updatePrevState() {
+        var atMin = stateYear === MIN_YEAR && stateMonth === MIN_MONTH;
+        prevBtn.disabled = atMin;
+        prevBtn.setAttribute("aria-disabled", atMin ? "true" : "false");
+      }
+
+      function fillYearOptions() {
+        yearSelect.innerHTML = "";
+        for (var y = MIN_YEAR; y <= MAX_YEAR; y += 1) {
+          var opt = document.createElement("option");
+          opt.value = String(y);
+          opt.textContent = String(y);
+          yearSelect.appendChild(opt);
+        }
+      }
+
+      function fillMonthOptions(year, selectedMonth) {
+        monthSelect.innerHTML = "";
+        var startMonth = year === MIN_YEAR ? MIN_MONTH : 1;
+        for (var m = startMonth; m <= 12; m += 1) {
+          var opt = document.createElement("option");
+          opt.value = String(m);
+          opt.textContent = String(m);
+          monthSelect.appendChild(opt);
+        }
+        if (selectedMonth && selectedMonth >= startMonth && selectedMonth <= 12) {
+          monthSelect.value = String(selectedMonth);
+        } else {
+          monthSelect.value = String(startMonth);
+        }
+      }
+
+      function syncSelectors() {
+        yearSelect.value = String(stateYear);
+        fillMonthOptions(stateYear, stateMonth);
+      }
+
+      function ymd(year, month, day) {
+        return (
+          String(year).padStart(4, "0") +
+          "-" +
+          String(month).padStart(2, "0") +
+          "-" +
+          String(day).padStart(2, "0")
+        );
+      }
+
+      function renderMonth(year, month) {
+        var first = new Date(year, month - 1, 1);
+        var startDow = first.getDay();
+        var daysInMonth = new Date(year, month, 0).getDate();
+
+        grid.innerHTML = "";
+        updatePrevState();
+        syncSelectors();
+
+        for (var i = 0; i < dow.length; i += 1) {
+          var dowEl = document.createElement("div");
+          dowEl.className = "calDow";
+          dowEl.textContent = dow[i];
+          grid.appendChild(dowEl);
+        }
+
+        for (var b = 0; b < startDow; b += 1) {
+          var blank = document.createElement("div");
+          blank.className = "calBlank";
+          grid.appendChild(blank);
+        }
+
+        for (var day = 1; day <= daysInMonth; day += 1) {
+          var key = ymd(year, month, day);
+          var postCount = Number(postCountByDate.get(key) || 0);
+          var memorialCount = memorialCountFor(key);
+
+          var link = document.createElement("a");
+          link.className = "calLink";
+          link.href = BASE + "date/" + key;
+
+          var cell = document.createElement("div");
+          cell.className = "calCell";
+          cell.setAttribute("data-ymd", key);
+          if (postCount > 0 || memorialCount > 0) {
+            if (postCount > 0 && memorialCount > 0) {
+              cell.title = postCount + "件の記事 / " + memorialCount + "件の記念日";
+            } else if (postCount > 0) {
+              cell.title = postCount + "件の記事";
+            } else {
+              cell.title = memorialCount + "件の記念日";
+            }
+          }
+          if (memorialCount > 0) {
+            cell.classList.add("hasMemorial");
+          }
+
+          var num = document.createElement("span");
+          num.className = "calNum mono";
+          num.textContent = String(day);
+          cell.appendChild(num);
+
+          if (memorialCount > 0) {
+            var memorial = document.createElement("span");
+            memorial.className = "memorialMark";
+            memorial.setAttribute("aria-hidden", "true");
+            memorial.textContent = "＊";
+            cell.appendChild(memorial);
+          }
+
+          if (postCount > 0) {
+            var mark = document.createElement("span");
+            mark.className = "mark";
+            mark.setAttribute("aria-hidden", "true");
+            mark.textContent = String(postCount);
+            cell.appendChild(mark);
+          }
+
+          link.appendChild(cell);
+          grid.appendChild(link);
+        }
+
+        applyTodayStamp();
+      }
+
+      function moveMonth(delta) {
+        if (delta < 0 && stateYear === MIN_YEAR && stateMonth === MIN_MONTH) return;
+        stateMonth += delta;
+        if (stateMonth <= 0) {
+          stateMonth = 12;
+          stateYear -= 1;
+        } else if (stateMonth >= 13) {
+          stateMonth = 1;
+          stateYear += 1;
+        }
+        var clamped = clampMin(stateYear, stateMonth);
+        stateYear = clamped[0];
+        stateMonth = clamped[1];
+        renderMonth(stateYear, stateMonth);
+      }
+
+      prevBtn.addEventListener("click", function () {
+        moveMonth(-1);
+      });
+      nextBtn.addEventListener("click", function () {
+        moveMonth(1);
+      });
+      todayBtn.addEventListener("click", function () {
+        var clamped = clampMin(todayYear, todayMonth);
+        stateYear = clamped[0];
+        stateMonth = clamped[1];
+        renderMonth(stateYear, stateMonth);
+      });
+      yearSelect.addEventListener("change", function () {
+        var selectedYear = Number(yearSelect.value);
+        var selectedMonth = Number(monthSelect.value);
+        var startMonth = selectedYear === MIN_YEAR ? MIN_MONTH : 1;
+        if (selectedMonth < startMonth) selectedMonth = startMonth;
+        var clamped = clampMin(selectedYear, selectedMonth);
+        stateYear = clamped[0];
+        stateMonth = clamped[1];
+        renderMonth(stateYear, stateMonth);
+      });
+      monthSelect.addEventListener("change", function () {
+        var nextYear = Number(yearSelect.value);
+        var nextMonth = Number(monthSelect.value);
+        var clamped = clampMin(nextYear, nextMonth);
+        stateYear = clamped[0];
+        stateMonth = clamped[1];
+        renderMonth(stateYear, stateMonth);
+      });
+
+      fillYearOptions();
+      renderMonth(stateYear, stateMonth);
     })();
   </script>
 
@@ -149,16 +389,68 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       margin: 0 0 10px;
     }
 
-    .sectionHead h2 {
-      margin: 0;
-      font-size: 0.92rem;
-      line-height: 1.15;
-      font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.04em;
+    .monthNav {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
-    .calGrid {
+    .calSelectWrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .calSelect {
+      border: 1px solid rgba(64, 54, 40, 0.16);
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.78rem;
+      height: 22px;
+      padding: 0 4px;
+    }
+
+    .calSuffix {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .calTodayBtn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.72rem;
+      padding: 0 4px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .calTodayBtn:hover {
+      color: var(--ink);
+    }
+
+    .calNavBtn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      width: 16px;
+      height: 20px;
+      line-height: 1;
+      padding: 0;
+      cursor: pointer;
+      font-size: 0.92rem;
+    }
+
+    .calNavBtn:hover {
+      color: var(--ink);
+    }
+
+    .calNavBtn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    :global(.calGrid) {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 8px;
@@ -168,59 +460,78 @@ const BASE = import.meta.env.BASE_URL.endsWith("/")
       background: #fff;
     }
 
-    .calLink {
+    :global(.calLink) {
       text-decoration: none;
+      display: block;
+      width: 100%;
     }
 
-    .calDow {
+    :global(.calDow) {
       text-align: center;
       font-size: 0.7rem;
       color: var(--muted);
       letter-spacing: 0.04em;
-      padding-bottom: 3px;
       text-transform: uppercase;
       opacity: 0.9;
+      padding-bottom: 3px;
     }
 
-    .calCell {
+    :global(.calCell) {
       height: 38px;
+      width: 100%;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      border: 1px solid rgba(64, 54, 40, 0.08);
+      border: 1px solid rgba(64, 54, 40, 0.16);
       border-radius: 0;
       background: #fff;
       transition: border-color 0.15s ease, background 0.15s ease;
     }
 
-    .calCell:hover {
+    :global(.calCell:hover) {
       border-color: rgba(77, 92, 66, 0.4);
       background: rgba(77, 92, 66, 0.04);
     }
 
-    .calNum {
+    :global(.calCell.hasMemorial) {
+      border-color: rgba(244, 167, 185, 0.88);
+      background: rgba(244, 167, 185, 0.06);
+    }
+
+    :global(.calNum) {
       font-size: 0.88rem;
       color: var(--ink);
     }
 
 
-    .calCell.isToday {
+    :global(.calCell.isToday) {
       border-color: rgba(77, 92, 66, 0.5);
       background: rgba(77, 92, 66, 0.08);
     }
 
-    .mark {
+    :global(.mark) {
       position: absolute;
-      bottom: 5px;
-      right: 6px;
+      bottom: 4px;
+      right: 5px;
       font-size: 0.66rem;
       font-weight: 600;
       color: var(--accent);
       opacity: 0.82;
     }
 
-    .calBlank {
+    :global(.memorialMark) {
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #f4a7b9;
+      opacity: 1;
+    }
+
+    :global(.calBlank) {
       height: 38px;
       border-radius: 0;
       background: rgba(64, 54, 40, 0.03);

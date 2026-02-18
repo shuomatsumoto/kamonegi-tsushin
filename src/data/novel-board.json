@@ -1,19 +1,18 @@
 {
   "title": "小説",
-  "description": "シリーズや題材ごとに、タイトルを並べます。",
+  "description": "",
   "groups": [
     {
-      "title": "連作",
+      "title": "中編",
       "items": [
-        { "label": "「無題」", "href": "/novel/novel" },
-        { "label": "「次回タイトル」（草稿）" }
+        { "label": "『異教徒の詩』", "href": "/novel/01" }
       ]
     },
     {
       "title": "短編",
       "items": [
-        { "label": "「」" },
-        { "label": "「」" }
+        { "label": "「無題」", "href": "/novel/novel" },
+        { "label": "「次回タイトル」（草稿）" }
       ]
     }
   ]

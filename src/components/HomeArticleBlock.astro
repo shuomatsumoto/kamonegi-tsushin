@@ -1,0 +1,199 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+const { posts, limit = 10 } = Astro.props as {
+  posts: CollectionEntry<"posts">[];
+  limit?: number;
+};
+
+const shown = posts.slice(0, limit);
+const featured = shown[0];
+const gridPosts = shown.slice(1);
+
+const BASE = import.meta.env.BASE_URL.endsWith("/")
+  ? import.meta.env.BASE_URL
+  : import.meta.env.BASE_URL + "/";
+
+function thumbSrc(raw?: string) {
+  if (!raw) return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/")) return `${BASE}${raw.slice(1)}`;
+  return `${BASE}${raw.replace(/^\/+/, "")}`;
+}
+---
+<section class="homeArticles">
+  {featured ? (
+    <a class="featuredPost" href={`${BASE}posts/${featured.slug}`}>
+      {thumbSrc((featured.data as any).thumbnail as string | undefined) ? (
+        <img
+          class="featuredThumb post-thumb-wide"
+          src={thumbSrc((featured.data as any).thumbnail as string | undefined) ?? ""}
+          alt=""
+          loading="lazy"
+        />
+      ) : null}
+      <div class="featuredTitleRow">
+        <strong class="featuredTitle post-title-2line">{featured.data.title}</strong>
+        {featured.data.series ? <span class="seriesBadge post-series-accent">〈{featured.data.series}〉</span> : null}
+      </div>
+      <p class="featuredDate"><span class="mono">{featured.data.date}</span></p>
+      {featured.data.summary ? <p class="featuredSummary post-summary-2line">{featured.data.summary}</p> : null}
+      {featured.data.category ? (
+        <p class="summaryCategory">
+          <span class="summaryCategoryText">{featured.data.category}</span>
+        </p>
+      ) : null}
+    </a>
+  ) : null}
+
+  {gridPosts.length ? (
+    <ul class="postGrid">
+      {gridPosts.map((p) => (
+        <li>
+          <a class="gridPostCard" href={`${BASE}posts/${p.slug}`}>
+            {thumbSrc((p.data as any).thumbnail as string | undefined) ? (
+              <img
+                class="gridThumb post-thumb-wide"
+                src={thumbSrc((p.data as any).thumbnail as string | undefined) ?? ""}
+                alt=""
+                loading="lazy"
+              />
+            ) : null}
+            <div class="gridTitleRow">
+              <strong class="gridTitle post-title-2line">{p.data.title}</strong>
+              {p.data.series ? <span class="seriesBadge post-series-accent">〈{p.data.series}〉</span> : null}
+            </div>
+            <p class="gridDate"><span class="mono">{p.data.date}</span></p>
+            {p.data.summary ? <p class="gridSummary post-summary-2line">{p.data.summary}</p> : null}
+            {p.data.category ? (
+              <p class="summaryCategory">
+                <span class="summaryCategoryText">{p.data.category}</span>
+              </p>
+            ) : null}
+          </a>
+        </li>
+      ))}
+    </ul>
+  ) : null}
+</section>
+
+<style>
+  .homeArticles {
+    padding: 0;
+    margin: 0;
+  }
+
+  .featuredPost {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 1px dotted var(--line);
+    padding: 0 0 14px;
+    margin-bottom: 14px;
+  }
+
+  .featuredThumb {
+    margin: 0 0 9px;
+  }
+
+  .featuredTitleRow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .featuredTitle {
+    font-size: clamp(1.14rem, 2vw, 1.32rem);
+    line-height: 1.32;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .featuredDate {
+    margin: 2px 0 0;
+    font-size: 0.74rem;
+    color: var(--muted);
+    opacity: 0.8;
+  }
+
+  .featuredSummary {
+    margin: 3px 0 0;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--muted);
+    opacity: 0.9;
+  }
+
+  .postGrid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+  }
+
+  .gridPostCard {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .gridThumb {
+    margin: 0 0 5px;
+  }
+
+  .gridTitleRow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 3px 6px;
+  }
+
+  .gridTitle {
+    font-size: 0.88rem;
+    line-height: 1.35;
+    font-weight: 400;
+    color: var(--ink);
+  }
+
+  .gridDate {
+    margin-top: 2px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    opacity: 0.78;
+  }
+
+  .gridSummary {
+    margin: 2px 0 0;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: var(--muted);
+    opacity: 0.86;
+  }
+
+  .summaryCategory {
+    margin: 8px 0 0;
+    display: block;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+
+  .summaryCategoryText {
+    color: #a39d92;
+  }
+
+  .seriesBadge {
+    font-size: 0.79rem;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 520px) {
+    .postGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

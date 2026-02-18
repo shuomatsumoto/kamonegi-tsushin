@@ -19,39 +19,97 @@ function parseLabel(raw: string) {
   const text = raw.replace(/^[\t ]+/, "");
   return { depth, text };
 }
+
+type BoardItem = { label: string; href?: string };
+type BoardSection = { title: string; items?: BoardItem[] };
+type BoardGroup = { title: string; items?: BoardItem[]; sections?: BoardSection[] };
+
+function hasNextAtDepth(items: BoardItem[], index: number, depth: number) {
+  for (let i = index + 1; i < items.length; i += 1) {
+    const nextDepth = parseLabel(items[i].label).depth;
+    if (nextDepth < depth) return false;
+    if (nextDepth === depth) return true;
+  }
+  return false;
+}
+
+function treePrefix(items: BoardItem[], index: number) {
+  const { depth } = parseLabel(items[index].label);
+  if (depth <= 0) return "";
+
+  let prefix = "";
+  for (let level = 1; level < depth; level += 1) {
+    prefix += hasNextAtDepth(items, index, level) ? "│  " : "   ";
+  }
+  prefix += hasNextAtDepth(items, index, depth) ? "├ " : "└ ";
+  return prefix;
+}
 ---
-<BaseLayout title="翻訳 | かもねぎ通信">
+<BaseLayout title="翻訳・研究 | かもねぎ通信">
   <section class="boardPage">
     <header class="boardHead">
-      <h2 class="h2" style="margin:0;">翻訳</h2>
+      <h2 class="h2" style="margin:0;">翻訳・研究</h2>
       <p class="small headSub">{board.description}</p>
     </header>
 
     <div class="hr"></div>
 
     <section class="boardBox" aria-label={board.title}>
-      <h3 class="boardTitle">翻訳の整理</h3>
+      <h3 class="boardTitle">{board.sectionTitle ?? "翻訳の整理"}</h3>
       <div class="groupStack">
-        {board.groups?.map((group) => (
+        {board.groups?.map((group: BoardGroup) => (
           <section class="groupBlock" aria-label={group.title}>
             <h4 class="groupTitle">{group.title}</h4>
-            <ul class="itemList">
-              {group.items?.map((item) => {
-                const p = parseLabel(item.label);
-                return (
-                <li class="itemEntry" data-depth={String(p.depth)} style={`--depth:${p.depth};`}>
-                  {item.href ? (
-                    <a class="itemLink" href={toHref(item.href)}>
-                      {p.text}
-                    </a>
-                  ) : (
-                    <span class="itemText">
-                      {p.text}
-                    </span>
-                  )}
-                </li>
-              )})}
-            </ul>
+            {group.sections?.length ? (
+              <div class="subGroupStack">
+                {group.sections.map((section) => (
+                  <section class="subGroupBlock" aria-label={section.title}>
+                    <h5 class="subGroupTitle">＜{section.title}＞</h5>
+                    <ul class="itemList">
+                      {section.items?.map((item, idx, arr) => {
+                        const p = parseLabel(item.label);
+                        const prefix = treePrefix(arr, idx);
+                        return (
+                        <li class="itemEntry">
+                          {item.href ? (
+                            <a class="itemLink" href={toHref(item.href)}>
+                              {prefix && <span class="treePrefix">{prefix}</span>}
+                              {p.text}
+                            </a>
+                          ) : (
+                            <span class="itemText">
+                              {prefix && <span class="treePrefix">{prefix}</span>}
+                              {p.text}
+                            </span>
+                          )}
+                        </li>
+                      )})}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <ul class="itemList">
+                {group.items?.map((item, idx, arr) => {
+                  const p = parseLabel(item.label);
+                  const prefix = treePrefix(arr, idx);
+                  return (
+                  <li class="itemEntry">
+                    {item.href ? (
+                      <a class="itemLink" href={toHref(item.href)}>
+                        {prefix && <span class="treePrefix">{prefix}</span>}
+                        {p.text}
+                      </a>
+                    ) : (
+                      <span class="itemText">
+                        {prefix && <span class="treePrefix">{prefix}</span>}
+                        {p.text}
+                      </span>
+                    )}
+                  </li>
+                )})}
+              </ul>
+            )}
           </section>
         ))}
       </div>
@@ -83,7 +141,7 @@ function parseLabel(raw: string) {
   .groupStack { display: grid; gap: 10px; }
 
   .groupBlock {
-    border: 1px solid rgba(64, 54, 40, 0.2);
+    border: 0;
     border-radius: 0;
     padding: 0;
     display: grid;
@@ -97,7 +155,6 @@ function parseLabel(raw: string) {
     font-size: 0.88rem;
     color: #3f5235;
     background: #f3f0e6;
-    border-bottom: 1px solid rgba(64, 54, 40, 0.14);
     line-height: 1.35;
     letter-spacing: 0.02em;
     font-weight: 600;
@@ -108,36 +165,12 @@ function parseLabel(raw: string) {
     padding: 8px 10px 10px;
     list-style: none;
     display: grid;
-    gap: 5px;
+    gap: 0;
   }
 
   .itemEntry {
-    line-height: 1.45;
+    line-height: 1.28;
     min-width: 0;
-    position: relative;
-    padding-left: calc(var(--depth, 0) * 1rem + 0.7rem);
-  }
-
-  .itemEntry::before {
-    content: "・";
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: var(--muted);
-  }
-
-  .itemEntry[data-depth="1"]::before,
-  .itemEntry[data-depth="2"]::before,
-  .itemEntry[data-depth="3"]::before,
-  .itemEntry[data-depth="4"]::before {
-    content: "↳";
-  }
-
-  .itemEntry[data-depth="1"],
-  .itemEntry[data-depth="2"],
-  .itemEntry[data-depth="3"],
-  .itemEntry[data-depth="4"] {
-    border-left: 1px solid rgba(64, 54, 40, 0.16);
   }
 
   .itemLink,
@@ -148,6 +181,40 @@ function parseLabel(raw: string) {
     overflow-wrap: anywhere;
     white-space: normal;
     tab-size: 2;
+  }
+
+  .treePrefix {
+    display: inline-block;
+    white-space: pre;
+    letter-spacing: 0;
+    line-height: 1.28;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: rgba(64, 54, 40, 0.56);
+  }
+
+  .subGroupStack {
+    display: grid;
+    gap: 4px;
+    padding-top: 4px;
+  }
+
+  .subGroupBlock {
+    display: grid;
+    gap: 0;
+  }
+
+  .subGroupBlock .itemList {
+    padding-top: 2px;
+  }
+
+  .subGroupTitle {
+    margin: 0;
+    padding: 4px 10px 2px;
+    font-size: 0.82rem;
+    color: #3f5235;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    font-weight: 500;
   }
 
   .itemLink:hover { text-decoration: underline; }
