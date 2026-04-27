@@ -5,7 +5,7 @@ const entrySchema = z.object({
   summary: z.string().max(200).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  kind: z.enum(["article", "note"]).optional(),
+  kind: z.enum(["article", "note", "cahier"]).optional(),
   draft: z.boolean().default(false),
   locked: z.boolean().default(false),
   lockPasscode: z.string().min(1).optional(),

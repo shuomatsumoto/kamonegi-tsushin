@@ -8,12 +8,16 @@ function isNoteLike(data: { kind?: string }) {
   return data.kind === "note";
 }
 
+function isCahierLike(data: { kind?: string }) {
+  return data.kind === "cahier";
+}
+
 const BASE = import.meta.env.BASE_URL.endsWith("/")
   ? import.meta.env.BASE_URL
   : import.meta.env.BASE_URL + "/";
 
 const [postsItems, translationItems, researchItems, novelItems] = await Promise.all([
-  getCollection("posts", ({ data }) => !data.draft && !isNoteLike(data)),
+  getCollection("posts", ({ data }) => !data.draft && !isNoteLike(data) && !isCahierLike(data)),
   getCollection("translation", ({ data }) => !data.draft),
   getCollection("research", ({ data }) => !data.draft),
   getCollection("novel", ({ data }) => !data.draft),

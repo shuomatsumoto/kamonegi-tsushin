@@ -1,7 +1,7 @@
 ---
 title: "物質になれる"
 date: "2026-04-27"
-kind: "article"
+kind: "cahier"
 thumbnail: ""
 supportUrl:
 draft: false

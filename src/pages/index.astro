@@ -51,8 +51,8 @@ type MonthArchiveEntry = {
   count: number;
 };
 
-function isNoteLike(data: { kind?: string }): boolean {
-  return data.kind === "note";
+function isCahierLike(data: { kind?: string }): boolean {
+  return data.kind === "cahier";
 }
 
 async function sha256Hex(text: string): Promise<string> {
@@ -75,10 +75,7 @@ const todayYmd = new Intl.DateTimeFormat("en-CA", {
 const todayMonth = todayYmd.slice(0, 7);
 const boardEntries = board as BoardEntry[];
 
-const postsAll = await getCollection(
-  "posts",
-  ({ data }) => !data.draft && !isNoteLike(data)
-);
+const postsAll = await getCollection("posts", ({ data }) => !data.draft && isCahierLike(data));
 const posts = postsAll.sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 const latestPosts = await Promise.all(
   posts

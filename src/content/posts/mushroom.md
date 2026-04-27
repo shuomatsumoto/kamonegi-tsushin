@@ -1,8 +1,8 @@
 ---
 title: "知らない隙間から、勝手に生えてくるキノコ"
 date: "2026-04-25"
-kind: "article"
-thumbnail: "/images/thumbs/13.jpg"
+kind: "cahier"
+thumbnail: ""
 supportUrl:
 draft: false
 locked: false

@@ -19,7 +19,7 @@ function formatMonthLabel(value: string): string {
   return `${Number(year)}年${Number(month)}月`;
 }
 
-const posts = await getCollection("posts", ({ data }) => !data.draft && data.kind !== "note");
+const posts = await getCollection("posts", ({ data }) => !data.draft && data.kind === "cahier");
 
 const monthCounts = new Map<string, number>();
 for (const post of posts) {

@@ -1,7 +1,7 @@
 ---
 title: "イメージ"
 date: "2026-04-26"
-kind: "article"
+kind: "cahier"
 thumbnail: ""
 supportUrl:
 draft: false

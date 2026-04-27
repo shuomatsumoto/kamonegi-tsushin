@@ -1,7 +1,7 @@
 ---
 title: " "
 date: "2026-00-00"
-kind: "article"
+kind: "cahier"
 thumbnail: "/images/thumbs/"
 supportUrl:
 draft: true

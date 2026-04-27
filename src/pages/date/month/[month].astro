@@ -23,7 +23,7 @@ async function sha256Hex(text: string): Promise<string> {
 }
 
 export async function getStaticPaths() {
-  const posts = await getCollection("posts", ({ data }) => !data.draft && data.kind !== "note");
+  const posts = await getCollection("posts", ({ data }) => !data.draft && data.kind === "cahier");
   const months = new Set<string>();
 
   for (const post of posts) {
@@ -38,7 +38,7 @@ export async function getStaticPaths() {
 const { month } = Astro.params as { month: string };
 const monthLabel = formatMonthLabel(month);
 
-const posts = (await getCollection("posts", ({ data }) => !data.draft && data.kind !== "note"))
+const posts = (await getCollection("posts", ({ data }) => !data.draft && data.kind === "cahier"))
   .filter((post) => post.data.date.slice(0, 7) === month)
   .sort((a, b) => (a.data.date < b.data.date ? 1 : -1));
 
