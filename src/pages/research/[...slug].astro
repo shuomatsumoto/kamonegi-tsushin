@@ -22,9 +22,6 @@ const storageKey = `research/${item.slug}`;
 ---
 <BaseLayout title={`${item.data.title} | 研究 | ねこねこ通信`}>
   <article class="plainArticle">
-    <div class="articleMeta">
-      <span class="small mono">{item.data.date}</span>
-    </div>
     <h1 class="h1">{item.data.title}</h1>
     {item.data.summary ? <p class="summaryLead">{item.data.summary}</p> : null}
     <LockGate
@@ -48,19 +45,20 @@ const storageKey = `research/${item.slug}`;
     margin-inline: auto;
   }
 
-  .articleMeta {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: baseline;
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
   .plainArticle .h1 {
-    font-size: clamp(1.45rem, 2.7vw, 1.82rem);
-    line-height: 1.38;
-    margin: 0 0 8px;
+    margin: 0;
+    font-size: clamp(1.38rem, 2.9vw, 1.86rem);
+    line-height: 1.28;
+    color: var(--accent);
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
+    font-weight: 400;
   }
 
   .summaryLead {
@@ -80,13 +78,30 @@ const storageKey = `research/${item.slug}`;
     margin: 1.8em 0 0.7em;
     font-size: 1.18rem;
     font-weight: 500;
+    color: var(--accent);
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
   }
 
   .prose :global(h3) {
     margin: 1.5em 0 0.6em;
     font-size: 1.02rem;
     font-weight: 400;
-    color: var(--muted);
-    opacity: 0.9;
+    color: var(--accent);
+    opacity: 1;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
   }
 </style>

@@ -17,10 +17,10 @@ const titleIconSrc = `${BASE}images/deco/${
   section === "lab" ? "neco2.png" : isArt ? "neco3.png" : "neco.png"
 }`;
 const homeHref = section === "lab" ? `${BASE}storage` : BASE;
-const siteTitle = section === "lab" ? "ねこねこ物置" : "ねこねこ通信";
+const siteTitle = section === "lab" ? "ねこねこ草稿" : "ねこねこ通信";
 const sectionLinks = [
   { href: BASE, label: "カイエ", active: section === "comm" },
-  { href: `${BASE}storage`, label: "物置", active: section === "lab" },
+  { href: `${BASE}storage`, label: "草稿", active: section === "lab" },
 ];
 ---
 <header class="siteHeader">

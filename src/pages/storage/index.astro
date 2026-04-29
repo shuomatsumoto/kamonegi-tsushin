@@ -29,38 +29,50 @@ const items: BandItem[] = [
     title: item.data.title,
     date: item.data.date,
     label: "記事",
+    tag: item.data.tag ?? "記事",
   })),
   ...translationItems.map((item) => ({
     href: `${BASE}translation/${item.slug}`,
     title: item.data.title,
     date: item.data.date,
     label: "翻訳",
+    tag: item.data.tag ?? "翻訳",
   })),
   ...researchItems.map((item) => ({
     href: `${BASE}research/${item.slug}`,
     title: item.data.title,
     date: item.data.date,
     label: "研究",
+    tag: item.data.tag ?? "研究",
   })),
   ...novelItems.map((item) => ({
     href: `${BASE}novel/${item.slug}`,
     title: item.data.title,
     date: item.data.date,
     label: "小説",
+    tag: item.data.tag ?? "小説",
   })),
 ].sort((a, b) => {
   if (a.date !== b.date) return a.date < b.date ? 1 : -1;
   return a.href < b.href ? 1 : -1;
 });
 ---
-<BaseLayout title="ねこねこ物置 | ねこねこ通信">
+<BaseLayout title="ねこねこ草稿 | ねこねこ通信">
   <section class="pageWrap">
-    <BandList
-      items={items}
-      title="ねこねこ物置"
-      showLabel={true}
-      emptyText="まだ物置に置かれたテクストはありません。"
-    />
+    {items.length === 0 ? (
+      <p>まだ草稿はありません。</p>
+    ) : (
+      <ul class="titleList">
+        {items.map((item) => (
+          <li>
+            <a href={item.href}>
+              <span class="tagText">{item.tag ?? item.label}</span>
+              <span class="title">{item.title}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
   </section>
 </BaseLayout>
 
@@ -68,5 +80,80 @@ const items: BandItem[] = [
   .pageWrap {
     width: min(100%, 940px);
     margin-inline: auto;
+  }
+
+  .titleList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .titleList li {
+    margin: 0.5rem 0;
+    list-style: none;
+  }
+
+  .titleList a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
+  }
+
+  .titleList a:hover {
+    text-decoration: underline;
+  }
+
+  .titleList a {
+    display: inline;
+  }
+
+  .titleList .tagText {
+    color: #000;
+    font-weight: 300;
+    font-size: 1.00em;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .titleList .tagText::before {
+    content: "[";
+    color: #000;
+    margin-right: 0.1rem;
+  }
+
+  .titleList .tagText::after {
+    content: "]";
+    color: #000;
+    margin-left: 0.1rem;
+  }
+
+  .titleList .title {
+    color: var(--accent);
+    margin-left: 0.4rem;
+    font-size: 1.00em;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Hiragino Sans",
+      "Yu Gothic",
+      "Noto Sans JP",
+      sans-serif;
   }
 </style>

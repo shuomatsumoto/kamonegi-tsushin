@@ -123,18 +123,6 @@ const displayPosts = await Promise.all(
 <BaseLayout title="ねこねこ通信">
   <main class="homePage">
     <section class="homeSection" data-home-root data-selected-month={selectedMonth}>
-      <div class="homeSearch">
-        <input
-          class="homeSearchInput"
-          type="search"
-          name="search"
-          value={searchQuery}
-          placeholder="検索"
-          aria-label="検索"
-          enterkeyhint="search"
-          data-home-search-input
-        />
-      </div>
 
       <p class="small" data-home-search-empty hidden>
         「{searchQuery}」に一致するカイエはありません。
@@ -175,6 +163,18 @@ const displayPosts = await Promise.all(
 
       {monthArchiveEntries.length ? (
         <nav class="monthPicker" aria-label="月の一覧">
+          <div class="homeSearch homeSearch--inMonth">
+            <input
+              class="homeSearchInput"
+              type="search"
+              name="search"
+              value={searchQuery}
+              placeholder="検索"
+              aria-label="検索"
+              enterkeyhint="search"
+              data-home-search-input
+            />
+          </div>
           <ul class="monthArchiveList">
             {monthArchiveEntries.map((entry) => (
               <li class="monthArchiveItem">
@@ -208,9 +208,14 @@ const displayPosts = await Promise.all(
     }
 
     .homeSearch {
-      width: min(100%, 320px);
-      justify-self: end;
+      width: min(100%, 220px);
+      justify-self: start;
       margin-inline: 0;
+    }
+
+    .homeSearch--inMonth {
+      justify-self: end;
+      margin-bottom: 6px;
     }
 
     .homeSearchInput {
@@ -237,12 +242,34 @@ const displayPosts = await Promise.all(
     .monthPicker {
       display: grid;
       gap: 8px;
-      margin-top: 0;
+      margin-top: 48px;
+      position: relative;
+      border-top: 1px solid transparent;
+    }
+
+    .monthPicker::after {
+      content: "";
+      display: block;
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      margin-bottom: 18px;
+    }
+
+    @media (min-width: 641px) {
+      .monthPicker .homeSearch--inMonth {
+        position: absolute;
+        top: -8px;
+        left: 0;
+      }
+    }
+
+    .monthArchiveList {
+      margin-top: 72px;
+      margin-bottom: 0;
     }
 
     .monthArchiveList {
       list-style: none;
-      margin: 0;
       padding: 0;
       display: grid;
       gap: 0.35rem;
@@ -385,7 +412,11 @@ const displayPosts = await Promise.all(
         gap: 22px;
       }
 
-      
+      .monthPicker .homeSearch--inMonth {
+        position: static;
+        justify-self: start;
+        margin-bottom: 12px;
+      }
     }
   </style>
 

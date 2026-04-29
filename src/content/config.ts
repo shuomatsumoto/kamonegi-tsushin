@@ -16,6 +16,7 @@ const entrySchema = z.object({
   sourceTitle: z.string().min(1).optional(),
   sourceUrl: z.string().url().optional(),
   sourceNote: z.string().min(1).optional(),
+  tag: z.string().optional(),
 });
 
 const post = defineCollection({
