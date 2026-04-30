@@ -2,7 +2,7 @@
 title: "ANOHNIとArcaのトランスジェンダリズムについて"
 date: "2026-04-29"
 kind: "note"
-tag: 性
+tag: 音楽
 summary: ""
 draft: false
 locked: false

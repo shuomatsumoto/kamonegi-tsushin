@@ -2,7 +2,7 @@
 title: "拮抗し、和解する自己翻訳——宇多田ヒカルにおける日英バイリンガリズムの創造性"
 date: "2026-01-25"
 kind: "note"
-tag: 翻訳
+tag: 音楽
 summary: ""
 draft: false
 locked: false
