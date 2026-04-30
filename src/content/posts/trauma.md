@@ -1,5 +1,5 @@
 ---
-title: "トラウマの寝床"
+title: "寝床"
 date: "2026-04-30"
 kind: "cahier"
 thumbnail: ""
